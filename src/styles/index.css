@@ -1,0 +1,134 @@
+@import "tailwindcss";
+@import "@fontsource/fredoka/500.css";
+@import "@fontsource/fredoka/600.css";
+@import "@fontsource/fredoka/700.css";
+@import "@fontsource/hanken-grotesk/400.css";
+@import "@fontsource/hanken-grotesk/500.css";
+@import "@fontsource/hanken-grotesk/600.css";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  --font-display: "Fredoka", ui-rounded, system-ui, sans-serif;
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+
+  --color-huahua-50: #fffbea;
+  --color-huahua-100: #fff3c4;
+  --color-huahua-200: #ffe98a;
+  --color-huahua-300: #fed62e;
+  --color-huahua-400: #f0c21a;
+  --color-huahua-500: #d9a70d;
+  --color-amber: #f0a841;
+  --color-coral: #fa7f5b;
+  --color-rust: #d9603e;
+  --color-rust-dark: #b54a2c;
+  --color-ink: #373636;
+  --color-ink-soft: #5b5857;
+  --color-sage: #7fae8a;
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --shadow-card: 0 1px 0 rgb(55 54 54 / 0.04), 0 8px 24px -12px rgb(55 54 54 / 0.18);
+  --shadow-pop: 0 20px 50px -20px rgb(55 54 54 / 0.45);
+}
+
+:root {
+  --bg: #fffbea;
+  --surface: #ffffff;
+  --surface-2: #fff6d6;
+  --line: #efe4c2;
+  --fg: #2e2d2d;
+  --muted: #6f6a60;
+  --accent: #fed62e;
+  --accent-fg: #2e2d2d;
+  --success: #2f8a4c;
+  --danger: #c2462a;
+  --warning: #b86e0a;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #1d1b1a;
+  --surface: #282524;
+  --surface-2: #322e2c;
+  --line: #3f3a37;
+  --fg: #f6efe0;
+  --muted: #b3aa9a;
+  --accent: #fed62e;
+  --accent-fg: #2e2d2d;
+  --success: #6cc788;
+  --danger: #ff8a6b;
+  --warning: #f0b35b;
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01";
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.paw-bg {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='%23373636' fill-opacity='0.05'%3E%3Cellipse cx='32' cy='38' rx='9' ry='7'/%3E%3Ccircle cx='21' cy='28' r='3.5'/%3E%3Ccircle cx='28' cy='22' r='3.5'/%3E%3Ccircle cx='36' cy='22' r='3.5'/%3E%3Ccircle cx='43' cy='28' r='3.5'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+.secret-blur {
+  filter: blur(7px);
+  user-select: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-rust);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html[data-view="popup"] body {
+  width: 380px;
+  height: 600px;
+  overflow-y: auto;
+}
+html[data-view="popup"] #root,
+html[data-view="approval"] #root {
+  min-height: 600px;
+}
