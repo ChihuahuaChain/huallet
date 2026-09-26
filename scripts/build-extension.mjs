@@ -10,7 +10,7 @@ import { thirdPartyNotices } from "./third-party-notices.mjs";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
 const staging = join(root, "dist-extension", "build");
-const alias = { "@": join(root, "src") };
+const alias = { "@": join(root, "src"), globalthis: join(root, "src/lib/shims/globalthis.cjs") };
 
 const GECKO_ID = "{5f0b3c2e-7a4d-4e8b-9c61-2b8f3d1a9e47}";
 

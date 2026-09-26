@@ -33,7 +33,10 @@ function cspPlugin(): Plugin {
 export default defineConfig({
   plugins: [react(), tailwindcss(), cspPlugin()],
   resolve: {
-    alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      globalthis: fileURLToPath(new URL("./src/lib/shims/globalthis.cjs", import.meta.url)),
+    },
   },
   build: {
     target: "es2022",
