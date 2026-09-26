@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Huallet Privacy Policy</title>
+<style>
+  :root { --bg:#fffbea; --fg:#2e2d2d; --muted:#6f6a60; --line:#efe4c2; --accent:#d9603e; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#1d1b1a; --fg:#f6efe0; --muted:#b3aa9a; --line:#3f3a37; --accent:#fa7f5b; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font:17px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:48px 20px 80px; }
+  h1 { font-size:2rem; margin:0 0 4px; } h2 { font-size:1.25rem; margin-top:2.2em; padding-top:1em; border-top:1px solid var(--line); }
+  a { color:var(--accent); } code { font-size:.9em; background:rgba(127,127,127,.15); padding:1px 5px; border-radius:5px; }
+  em { color:var(--muted); } li { margin:.4em 0; }
+</style>
+</head>
+<body><main>
+<h1>Huallet Privacy Policy</h1>
+<p><em>Last updated: 2026-09-25</em></p>
+<p>Huallet is a self-custodial wallet (browser extension and web app) for Chihuahua Chain and other Cosmos networks. We do not operate servers that receive your data, and we do not collect, sell or share personal information.</p>
+<h2>What stays on your device</h2>
+<ul>
+<li><strong>Recovery phrases and private keys</strong> (extension only) are encrypted with AES-256-GCM using a key derived from your password (PBKDF2-SHA256, 600,000 iterations) and stored in the browser&#x27;s extension storage. While the wallet is unlocked, decrypted keys are kept in memory-only session storage that is cleared when you lock the wallet or close the browser. They are never transmitted anywhere.</li>
+<li><strong>Ledger accounts</strong> store only the public key; signing happens on your device, which Huallet reaches over USB (WebHID) only when you connect or sign.</li>
+<li><strong>Settings, address book, custom chains, custom tokens and the list of sites you connected</strong> are stored locally in your browser.</li>
+</ul>
+<p>The web app never has access to your keys: it asks the wallet extension you connect for your public address and to sign transactions you approve.</p>
+<h2>Network requests</h2>
+<p>To show balances and send transactions, Huallet connects directly from your browser to:</p>
+<ul>
+<li><strong>Blockchain nodes (RPC / REST)</strong> of the networks you enable — public endpoints listed in the app, or endpoints you add yourself. These nodes necessarily see your public address and the transactions you broadcast, like with any wallet.</li>
+<li><strong>CoinGecko</strong> (<code>api.coingecko.com</code>) for fiat prices — only token identifiers are sent, never your address. This can be turned off in Settings.</li>
+<li><strong>Cosmos Chain Registry</strong> (<code>raw.githubusercontent.com/cosmos/chain-registry</code>) and <strong>cosmos.directory</strong> for public chain and token metadata.</li>
+<li><strong>Token and chain logos</strong> hosted by the chain registry or by the chain configuration you add.</li>
+</ul>
+<p>No analytics, tracking pixels, advertising or crash-reporting services are used.</p>
+<h2>Websites (dApps)</h2>
+<p>A website can only see your addresses after you approve a connection request, and every signature requires your explicit approval in a Huallet window. You can review and revoke connected sites at any time in <strong>Settings → Connected sites</strong>.</p>
+<h2>Permissions (extension)</h2>
+<ul>
+<li><code>storage</code> — keep the encrypted vault and your settings.</li>
+<li><code>alarms</code> — auto-lock the wallet after inactivity.</li>
+<li>Content scripts on web pages — expose the Huallet wallet provider so dApps can request connections and signatures. They cannot read your keys.</li>
+</ul>
+<h2>Contact</h2>
+<p>Questions about this policy or Huallet: <a href="https://chihuahua.wtf">https://chihuahua.wtf</a></p>
+</main></body>
+</html>
