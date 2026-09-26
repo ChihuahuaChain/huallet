@@ -41,4 +41,4 @@ approval in a Huallet window. You can review and revoke connected sites at any t
 
 ## Contact
 
-Questions about this policy or Huallet: https://chihuahua.wtf
+Questions about this policy or Huallet: https://github.com/ChihuahuaChain/huallet/issues

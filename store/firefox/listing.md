@@ -19,10 +19,10 @@ The official Chihuahua Chain wallet. Self-custodial wallet for HUAHUA and the Co
 
 **Categories:** Privacy & Security (primary), Other
 **Tags:** crypto, wallet, cosmos, blockchain, staking
-**Homepage:** https://chihuahua.wtf
-**Support site / email:** https://chihuahua.wtf  ← replace with a support page or email if you have one
+**Homepage:** https://github.com/ChihuahuaChain/huallet
+**Support site:** https://github.com/ChihuahuaChain/huallet/issues
 **License:** Apache License 2.0
-**Privacy policy:** paste the text of `PRIVACY.md` (AMO asks for the text itself), or link to the published page
+**Privacy policy:** paste the text of `PRIVACY.md` (AMO asks for the text itself)
 **Screenshots:** `store/assets/screenshot-*.png`
 
 **This add-on requires payment, non-free services or software, or additional hardware?** No

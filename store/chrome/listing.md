@@ -50,7 +50,7 @@ CONNECT TO DAPPS
 BUILT-IN CHAINS
 Chihuahua, Cosmos Hub, Osmosis, Juno, Celestia — and add any Cosmos chain from the chain registry.
 
-Huallet has no accounts, no analytics and no tracking. Nobody — including the Chihuahua team — can access or recover your keys: keep your recovery phrase safe and offline.
+Huallet is open source (Apache-2.0): https://github.com/ChihuahuaChain/huallet — no accounts, no analytics and no tracking. Nobody — including the Chihuahua team — can access or recover your keys: keep your recovery phrase safe and offline.
 
 **Graphics** (`store/assets/`):
 - Screenshots (1280×800): `screenshot-1-wallet.png` … `screenshot-5-governance.png`
@@ -58,8 +58,8 @@ Huallet has no accounts, no analytics and no tracking. Nobody — including the 
 - Marquee (1400×560, optional): `promo-marquee-1400x560.png`
 - Icon: taken from the package (128×128)
 
-**Official URL / homepage:** https://chihuahua.wtf
-**Support URL:** https://chihuahua.wtf  ← replace with a support page or email if you have one
+**Official URL / homepage:** https://github.com/ChihuahuaChain/huallet
+**Support URL:** https://github.com/ChihuahuaChain/huallet/issues
 
 ## Privacy practices tab
 
@@ -76,7 +76,7 @@ Huallet is a cryptocurrency wallet for Chihuahua Chain and other Cosmos networks
 **Data usage:** tick nothing — Huallet does not collect or transmit user data to the developer.
 Certify all three statements (no selling, no unrelated use, no creditworthiness use).
 
-**Privacy policy URL:** <URL where you publish store/privacy.html>
+**Privacy policy URL:** https://github.com/ChihuahuaChain/huallet/blob/main/PRIVACY.md
 
 ## Notes for the reviewer (Distribution → "Additional information", if asked)
 
