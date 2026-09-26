@@ -53,7 +53,7 @@ Chihuahua, Cosmos Hub, Osmosis, Juno, Celestia — and add any Cosmos chain from
 Huallet is open source (Apache-2.0): https://github.com/ChihuahuaChain/huallet — no accounts, no analytics and no tracking. Nobody — including the Chihuahua team — can access or recover your keys: keep your recovery phrase safe and offline.
 
 **Graphics** (`store/assets/`):
-- Screenshots (1280×800): `screenshot-1-wallet.png` … `screenshot-5-governance.png`
+- Screenshots (1280×800): `screenshot-1-wallet.png`, `screenshot-2-staking.png`, `screenshot-3-swap.png`, `screenshot-4-signing.png`, `screenshot-5-ledger.png` (max 5)
 - Small promo tile (440×280): `promo-small-440x280.png`
 - Marquee (1400×560, optional): `promo-marquee-1400x560.png`
 - Icon: taken from the package (128×128)

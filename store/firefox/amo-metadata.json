@@ -1,0 +1,34 @@
+{
+  "version": {
+    "license": "Apache-2.0",
+    "approval_notes": "Huallet is a self-custodial Cosmos wallet (official wallet of Chihuahua Chain).\n- Build: see BUILD.md in the source archive (Node 22, `npm ci && npm run build:ext`). The build is reproducible: the output in dist-extension/firefox is byte-identical to the submitted package.\n- web-ext lint: 0 errors. Warnings come from third-party code (React DOM innerHTML handling, Vite's module-preload helper, and a never-executed `Function(\"return this\")` globalThis shim in a dependency).\n- Content scripts expose the wallet provider (window.huallet) to websites; every connection and signature request opens a Huallet approval window.\n- No data collection; network requests only to public blockchain RPC/REST endpoints, CoinGecko (prices, can be disabled) and the Cosmos chain registry.\n- Test phrase without funds: abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+  },
+  "name": {
+    "en-US": "Huallet"
+  },
+  "slug": "huallet",
+  "summary": {
+    "en-US": "The official Chihuahua Chain wallet. Self-custodial wallet for HUAHUA and the Cosmos ecosystem: stake, swap on HuahuaSwap, vote, send and bridge with IBC, and connect to Cosmos dApps. Keys stay encrypted on your device."
+  },
+  "description": {
+    "en-US": "Huallet is the official wallet of Chihuahua Chain — a self-custodial browser wallet for HUAHUA and the whole Cosmos ecosystem.\n\nYOUR KEYS, YOUR TREATS\n• Create a new wallet or import a recovery phrase or private key\n• Keys are encrypted on your device (AES-256-GCM) and never leave it\n• Ledger hardware wallet support (Cosmos app)\n• Auto-lock, multiple accounts, privacy mode\n\nSTAKE AND EARN\n• Stake, unstake and redelegate HUAHUA and other Cosmos tokens\n• Claim rewards from one validator or all at once\n• Validator list with voting power and commission, plus decentralization hints\n\nSWAP ON HUAHUASWAP\n• Trade HUAHUA and Chihuahua tokens on the native DEX, right from the wallet\n• Clear quotes, price impact and slippage protection\n• Buy and sell new tokens on the HuahuaSwap Launchpad\n\nSEND, RECEIVE, BRIDGE\n• Send native, IBC, tokenfactory and CW20 tokens\n• IBC transfers between Cosmos chains, with channels verified on-chain\n• Address book, QR codes, and warnings when an address belongs to another chain\n\nGOVERNANCE\n• Follow proposals and vote from the popup\n\nCONNECT TO DAPPS\n• dApps connect through the Huallet provider (window.huallet)\n• Every connection and signature opens a clear review window showing the site, the messages, the fee and the raw data\n\nBUILT-IN CHAINS\nChihuahua, Cosmos Hub, Osmosis, Juno, Celestia — and add any Cosmos chain from the chain registry.\n\nHuallet is open source (Apache-2.0): https://github.com/ChihuahuaChain/huallet — no accounts, no analytics and no tracking. Nobody — including the Chihuahua team — can access or recover your keys: keep your recovery phrase safe and offline.\n\nNote: Ledger hardware wallets need WebHID, which Firefox does not support yet. Use a Chromium-based browser for Ledger accounts."
+  },
+  "categories": [
+    "privacy-security",
+    "other"
+  ],
+  "homepage": {
+    "en-US": "https://github.com/ChihuahuaChain/huallet"
+  },
+  "support_url": {
+    "en-US": "https://github.com/ChihuahuaChain/huallet/issues"
+  },
+  "tags": [
+    "crypto",
+    "wallet",
+    "cosmos",
+    "blockchain",
+    "staking"
+  ],
+  "requires_payment": false
+}
