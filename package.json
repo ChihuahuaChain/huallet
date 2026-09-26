@@ -1,7 +1,7 @@
 {
   "name": "huallet",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "Huallet — web wallet for Chihuahua Chain and the Cosmos ecosystem",
   "scripts": {
