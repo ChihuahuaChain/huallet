@@ -180,7 +180,7 @@ export function AppShell({ menu = <WalletMenu />, compact = false }: { menu?: Re
   const localKeys = useWallet((s) => s.backend?.id.startsWith("local:") ?? false);
 
   return (
-    <div className="min-h-screen lg:flex">
+    <div className="app-shell min-h-screen lg:flex">
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-surface lg:flex">
         <div className="px-5 py-5">
           <Link to="/" aria-label="Huallet">
@@ -211,7 +211,7 @@ export function AppShell({ menu = <WalletMenu />, compact = false }: { menu?: Re
         </div>
       </aside>
 
-      <div className="min-w-0 flex-1 pb-20 lg:pb-0">
+      <div className="app-shell-body min-w-0 flex-1 pb-20 lg:pb-0">
         <header className="sticky top-0 z-30 border-b border-line bg-bg/85 backdrop-blur">
           <div className={cx("mx-auto flex h-16 max-w-6xl items-center px-4 lg:px-8", compact ? "gap-1.5 px-3" : "gap-3")}>
             <Link to="/" className="lg:hidden" aria-label="Huallet">

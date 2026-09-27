@@ -123,7 +123,7 @@ function Gate() {
   return <Outlet />;
 }
 
-const compact = extView() !== "tab";
+const compact = extView() !== "tab" || document.documentElement.dataset.view === "mobile";
 
 const router = createHashRouter([
   {
