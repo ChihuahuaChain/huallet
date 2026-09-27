@@ -1,5 +1,6 @@
 import { AlertTriangle, ExternalLink } from "lucide-react";
 import { PageHeader } from "@/components/layout/AppShell";
+import { NfcReceive } from "@/components/PayRequest";
 import { QrCode } from "@/components/QrCode";
 import { Alert, Card, CardHeader, CopyButton, Skeleton, TokenIcon } from "@/components/ui";
 import { useAddress, useAddresses } from "@/hooks/queries";
@@ -30,6 +31,7 @@ export function ReceivePage() {
           <div className="w-full rounded-xl bg-surface-2 p-3">
             <div className="break-all font-mono text-sm">{address ?? "…"}</div>
           </div>
+          <NfcReceive chain={chain} address={address} />
           <div className="flex gap-2">
             {address && <CopyButton text={address} label={t("common.copyAddress")} className="border border-line px-3" />}
             {explorer && (

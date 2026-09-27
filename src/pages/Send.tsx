@@ -1,6 +1,9 @@
 import { AlertTriangle, ArrowLeftRight } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { PayRequestButtons } from "@/components/PayRequest";
+import { toast } from "@/components/Toaster";
+import type { PaymentRequest } from "@/lib/payreq";
 import { Amount, Fiat } from "@/components/Amount";
 import { PageHeader } from "@/components/layout/AppShell";
 import { RecipientInput, useRecipientError } from "@/components/RecipientInput";
@@ -11,7 +14,7 @@ import { useT } from "@/i18n";
 import { feeCurrencyOf, type ChainInfo } from "@/lib/chains/types";
 import { computeFee, msg } from "@/lib/cosmos/tx";
 import { fromBaseUnits, toBaseUnits, toNumber } from "@/lib/format";
-import { useAllChains, useSelectedChain } from "@/state/chains";
+import { useAllChains, useChainsStore, useEnabledChains, useSelectedChain } from "@/state/chains";
 import { checkAddress } from "@/lib/address";
 
 export interface TokenOption {
@@ -66,6 +69,8 @@ export function SendPage() {
   const [recipient, setRecipient] = useState(params.get("to") ?? "");
   const [amount, setAmount] = useState("");
   const [memo, setMemo] = useState("");
+  const selectChain = useChainsStore((s) => s.selectChain);
+  const enabledChains = useEnabledChains();
 
   useEffect(() => {
     if (options.length && !options.some((o) => o.key === tokenKey)) setTokenKey(options[0].key);
@@ -92,6 +97,24 @@ export function SendPage() {
   }
   const memoSuspicious = /\b([a-z]+\s+){11,}[a-z]+\b/i.test(memo) || /^(0x)?[0-9a-f]{64}$/i.test(memo.trim());
   const valid = !!token && !!address && !!recipient && !recipientCheck.error && parsed !== null && !amountError && !memoSuspicious;
+
+  // A request from a QR code or NFC fills the form; the user still reviews and signs.
+  const applyRequest = (r: PaymentRequest, via: "qr" | "nfc") => {
+    if (r.prefix !== chain.bech32Config.bech32PrefixAccAddr) {
+      const target = enabledChains.find((c) => (r.chainId ? c.chainId === r.chainId : c.bech32Config.bech32PrefixAccAddr === r.prefix));
+      if (!target || target.bech32Config.bech32PrefixAccAddr !== r.prefix) {
+        toast.error(t("payreq.unknownChain", { prefix: r.prefix }));
+        return;
+      }
+      selectChain(target.chainId);
+      toast.info(t("payreq.otherChain", { chain: target.chainName }));
+    }
+    setRecipient(r.address);
+    if (r.denom) setTokenKey(r.denom);
+    if (r.amount) setAmount(r.amount);
+    if (r.memo !== undefined) setMemo(r.memo);
+    toast.success(t("payreq.filled", { via: via === "qr" ? "QR" : "NFC" }), t("payreq.checkAddress", { address: r.address }));
+  };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -126,6 +149,7 @@ export function SendPage() {
             </Select>
           </Field>
 
+          <PayRequestButtons onRequest={applyRequest} />
           <RecipientInput value={recipient} onChange={setRecipient} onMemo={setMemo} chain={chain} own={address} />
 
           <Field

@@ -7,12 +7,15 @@ import { createWalletCore } from "@/extension/background/core";
 import { setInProcessBackground } from "@/extension/popup/background";
 import { setBiometric } from "@/lib/biometric";
 import { setAppStorage } from "@/lib/kv";
+import { setNative } from "@/lib/native";
 import { androidBiometric } from "./biometric";
+import { androidNfc, androidScanner } from "./native";
 import { mobilePlatform, prefsAppStorage } from "./platform";
 
 // Storage and transport must be in place before any store loads.
 setAppStorage(prefsAppStorage);
 setBiometric(androidBiometric);
+setNative({ scanner: androidScanner, nfc: androidNfc });
 const refreshKeyring = () => import("@/extension/state/keyringStore").then((m) => m.useKeyring.getState().refresh());
 const core = createWalletCore(mobilePlatform(() => void refreshKeyring()));
 setInProcessBackground(core.handleUi);

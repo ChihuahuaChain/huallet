@@ -6,6 +6,8 @@ import { Button, Card } from "@/components/ui";
 import { useT } from "@/i18n";
 import { keyring } from "@/extension/popup/keyring";
 import { useKeyring as useWallet } from "@/extension/state/keyringStore";
+import { WrongPasswordError } from "@/lib/crypto/vault";
+import { PasswordPrompt } from "../PasswordPrompt";
 import { MnemonicGrid, VerifyMnemonic } from "./parts";
 
 export function Backup() {
@@ -15,11 +17,27 @@ export function Backup() {
   const key = useWallet((s) => s.keys.find((k) => k.id === keyId));
   const [step, setStep] = useState<"show" | "verify">("show");
   const [mnemonic, setMnemonic] = useState<string | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
   useEffect(() => {
     keyring.pendingBackupSecret(keyId).then(setMnemonic, () => setMnemonic(""));
   }, [keyId]);
   if (mnemonic === null) return null;
   if (!key || key.backedUp || !mnemonic) return <Navigate to="/" replace />;
+  if (!confirmed) {
+    return (
+      <PasswordPrompt
+        open
+        allowBiometric
+        title={t("backup.confirmTitle")}
+        body={t("backup.confirmBody")}
+        onClose={() => navigate(-1)}
+        onConfirm={async (password) => {
+          if (!(await keyring.verifyPassword(password))) throw new WrongPasswordError();
+          setConfirmed(true);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="mx-auto max-w-xl px-4 py-10">

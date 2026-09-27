@@ -69,6 +69,7 @@ export function AccountsSettings() {
         open={!!revealFor}
         onClose={() => setRevealFor(null)}
         title={revealFor?.type === "mnemonic" ? t("accounts.revealMnemonic") : t("accounts.revealPrivateKey")}
+        allowBiometric
         body={<Alert tone="danger" icon={<ShieldAlert className="size-4 text-danger" />}>{t("accounts.revealWarn")}</Alert>}
         onConfirm={async (pw) => {
           const value = await keyring.revealSecret(revealFor!.id, pw);

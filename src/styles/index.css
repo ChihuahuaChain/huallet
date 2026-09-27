@@ -166,3 +166,9 @@ html[data-view="mobile"] .modal-sheet {
   max-height: calc(92vh - var(--sat));
   padding-bottom: var(--sab);
 }
+
+/* Swiping between tabs slides the new page in from the side it came from. */
+@keyframes swipe-in-left { from { transform: translateX(28px); opacity: 0.4; } }
+@keyframes swipe-in-right { from { transform: translateX(-28px); opacity: 0.4; } }
+html[data-swipe="left"] .swipe-page { animation: swipe-in-left 0.18s ease-out; }
+html[data-swipe="right"] .swipe-page { animation: swipe-in-right 0.18s ease-out; }
