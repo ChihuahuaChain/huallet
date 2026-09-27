@@ -1,6 +1,6 @@
 import { BarcodeFormat, BarcodeScanner } from "@capacitor-mlkit/barcode-scanning";
 import { registerPlugin, type PluginListenerHandle } from "@capacitor/core";
-import type { Nfc, NfcStatus, QrScanner } from "@/lib/native";
+import type { Nfc, NfcStatus, QrScanner, Screen } from "@/lib/native";
 
 // Google's scanner UI from Play Services: no camera permission for the app.
 export const androidScanner: QrScanner = {
@@ -52,4 +52,10 @@ export const androidNfc: Nfc = {
     listener = null;
     await native.stopReading();
   },
+};
+
+const nativeScreen = registerPlugin<{ setMaxBrightness(o: { on: boolean }): Promise<void> }>("HualletScreen");
+
+export const androidScreen: Screen = {
+  setMaxBrightness: (on) => nativeScreen.setMaxBrightness({ on }),
 };

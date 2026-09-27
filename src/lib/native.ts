@@ -22,13 +22,21 @@ export interface Nfc {
   stopReading(): Promise<void>;
 }
 
+export interface Screen {
+  /** Full brightness on, or back to the system setting. */
+  setMaxBrightness(on: boolean): Promise<void>;
+}
+
 let scanner: QrScanner | null = null;
 let nfc: Nfc | null = null;
+let screen: Screen | null = null;
 
-export function setNative(n: { scanner?: QrScanner; nfc?: Nfc }) {
+export function setNative(n: { scanner?: QrScanner; nfc?: Nfc; screen?: Screen }) {
   scanner = n.scanner ?? scanner;
   nfc = n.nfc ?? nfc;
+  screen = n.screen ?? screen;
 }
 
 export const qrScanner = () => scanner;
 export const nfcApi = () => nfc;
+export const screenApi = () => screen;

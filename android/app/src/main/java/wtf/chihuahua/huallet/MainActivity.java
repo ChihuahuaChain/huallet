@@ -10,6 +10,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(BiometricPlugin.class);
         registerPlugin(NfcPlugin.class);
+        registerPlugin(ScreenPlugin.class);
         super.onCreate(savedInstanceState);
         // Keep recovery phrases and balances out of screenshots, screen
         // recordings and the recent-apps preview. Debug builds stay capturable
