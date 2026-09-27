@@ -1,7 +1,7 @@
 import { AlertTriangle, ArrowLeftRight } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { PayRequestButtons } from "@/components/PayRequest";
+import { PayRequestButtons, type ChosenAmount } from "@/components/PayRequest";
 import { toast } from "@/components/Toaster";
 import type { PaymentRequest } from "@/lib/payreq";
 import { Amount, Fiat } from "@/components/Amount";
@@ -99,7 +99,7 @@ export function SendPage() {
   const valid = !!token && !!address && !!recipient && !recipientCheck.error && parsed !== null && !amountError && !memoSuspicious;
 
   // A request from a QR code or NFC fills the form; the user still reviews and signs.
-  const applyRequest = (r: PaymentRequest, via: "qr" | "nfc") => {
+  const applyRequest = (r: PaymentRequest, via: "qr" | "nfc", chosen?: ChosenAmount) => {
     if (r.prefix !== chain.bech32Config.bech32PrefixAccAddr) {
       const target = enabledChains.find((c) => (r.chainId ? c.chainId === r.chainId : c.bech32Config.bech32PrefixAccAddr === r.prefix));
       if (!target || target.bech32Config.bech32PrefixAccAddr !== r.prefix) {
@@ -110,8 +110,16 @@ export function SendPage() {
       toast.info(t("payreq.otherChain", { chain: target.chainName }));
     }
     setRecipient(r.address);
-    if (r.denom) setTokenKey(r.denom);
-    if (r.amount) setAmount(r.amount);
+    if (chosen) {
+      setTokenKey(chosen.tokenKey);
+      setAmount(chosen.amount);
+      if (r.amount && (r.amount !== chosen.amount || (r.denom && r.denom !== chosen.tokenKey))) {
+        toast.info(t("payreq.amountDiffers", { requested: `${r.amount} ${r.denom ?? ""}`.trim(), chosen: chosen.amount }));
+      }
+    } else {
+      if (r.denom) setTokenKey(r.denom);
+      if (r.amount) setAmount(r.amount);
+    }
     if (r.memo !== undefined) setMemo(r.memo);
     toast.success(t("payreq.filled", { via: via === "qr" ? "QR" : "NFC" }), t("payreq.checkAddress", { address: r.address }));
   };
@@ -149,7 +157,7 @@ export function SendPage() {
             </Select>
           </Field>
 
-          <PayRequestButtons onRequest={applyRequest} />
+          <PayRequestButtons tokens={options} onRequest={applyRequest} />
           <RecipientInput value={recipient} onChange={setRecipient} onMemo={setMemo} chain={chain} own={address} />
 
           <Field
