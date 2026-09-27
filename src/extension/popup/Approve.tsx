@@ -61,6 +61,14 @@ function Layout({ icon, title, origin, children, footer }: { icon: ReactNode; ti
   );
 }
 
+function prettyJson(s: string) {
+  try {
+    return JSON.stringify(JSON.parse(s), null, 2);
+  } catch {
+    return s;
+  }
+}
+
 function MsgCard({ m, chainId }: { m: ApprovalMsg; chainId: string }) {
   const t = useT();
   const locale = useLocale();
@@ -70,7 +78,7 @@ function MsgCard({ m, chainId }: { m: ApprovalMsg; chainId: string }) {
     const cur = chain?.currencies.find((x) => x.coinMinimalDenom === c.denom);
     return cur ? `${formatAmount(c.amount, cur.coinDecimals, { locale, maxDecimals: cur.coinDecimals })} ${cur.coinDenom}` : `${c.amount} ${shortAddress(c.denom, 10, 4)}`;
   };
-  const known = ["send", "cw20-send", "delegate", "undelegate", "redelegate", "claim", "vote", "ibc", "swap", "curve-buy", "curve-sell"].includes(m.kind);
+  const known = ["send", "cw20-send", "delegate", "undelegate", "redelegate", "claim", "vote", "ibc", "swap", "curve-buy", "curve-sell", "contract-execute"].includes(m.kind);
   return (
     <div className="rounded-xl border border-line bg-surface p-3">
       <div className="flex items-center justify-between gap-2">
@@ -83,13 +91,19 @@ function MsgCard({ m, chainId }: { m: ApprovalMsg; chainId: string }) {
       </div>
       {!known && <div className="mt-1 break-all font-mono text-[11px] text-muted">{m.typeUrl}</div>}
       <dl className="mt-2 space-y-1 text-xs">
-        {Object.entries(m.fields).map(([k, v]) => (
+        {Object.entries(m.fields).filter(([k]) => k !== "msg").map(([k, v]) => (
           <div key={k} className="flex justify-between gap-3">
             <dt className="text-muted">{t(`tx.field.${k}` as MessageKey)}</dt>
             <dd className="min-w-0 break-all text-right font-mono">{v.length > 40 ? shortAddress(v, 14, 8) : v}</dd>
           </div>
         ))}
       </dl>
+      {m.fields.msg && (
+        <div className="mt-2 text-xs">
+          <div className="text-muted">{t("tx.field.msg")}</div>
+          <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap break-all rounded-lg bg-surface-2 p-2 font-mono text-[11px]">{prettyJson(m.fields.msg)}</pre>
+        </div>
+      )}
     </div>
   );
 }
