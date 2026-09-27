@@ -1,10 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, ShieldCheck } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { CheckCircle2, Fingerprint, ShieldCheck } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
 import { StrengthMeter } from "@/extension/onboarding/parts";
 import { toast } from "@/components/Toaster";
 import { Alert, Button, Card, CardHeader, Field, PasswordInput, Select } from "@/components/ui";
 import { useT } from "@/i18n";
+import { biometric, BiometricCancelledError, type BiometricStatus } from "@/lib/biometric";
 import { WrongPasswordError } from "@/lib/crypto/vault";
 import { keyring } from "@/extension/popup/keyring";
 import { useSettings } from "@/state/settings";
@@ -26,9 +27,11 @@ export function SecuritySettings() {
     setBusy(true);
     setError("");
     try {
+      const hadBio = (await biometric()?.status())?.enabled;
       await keyring.changePassword(oldPw, pw);
       setOldPw(""); setPw(""); setPw2("");
       toast.success(t("security.changed"));
+      if (hadBio) toast.info(t("biometric.offAfterPassword"));
     } catch (err) {
       setError(err instanceof WrongPasswordError ? t("unlock.wrong") : String(err));
     } finally {
@@ -38,6 +41,7 @@ export function SecuritySettings() {
 
   return (
     <>
+      <BiometricCard />
       <Card>
         <CardHeader title={t("security.autoLock")} subtitle={t("security.autoLockBody")} />
         <div className="p-5">
@@ -92,5 +96,70 @@ export function SecuritySettings() {
         }}
       />
     </>
+  );
+}
+
+function BiometricCard() {
+  const t = useT();
+  const bio = biometric();
+  const [status, setStatus] = useState<BiometricStatus | null>(null);
+  const [asking, setAsking] = useState(false);
+  const refresh = () => bio?.status().then(setStatus);
+  useEffect(() => void refresh(), []); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!bio || !status) return null;
+
+  return (
+    <Card>
+      <CardHeader title={t("biometric.title")} subtitle={t("biometric.body")} />
+      <div className="space-y-3 p-5">
+        {!status.available ? (
+          <Alert tone="warning" icon={<Fingerprint className="size-4 text-warning" />}>
+            {t(status.reason === "none-enrolled" ? "biometric.noneEnrolled" : "biometric.unavailable")}
+          </Alert>
+        ) : status.enabled ? (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="flex items-center gap-2 text-sm font-medium text-success">
+              <CheckCircle2 className="size-4" /> {t("biometric.on")}
+            </span>
+            <Button
+              variant="secondary"
+              onClick={async () => {
+                await bio.disable();
+                toast.success(t("biometric.disabled"));
+                await refresh();
+              }}
+            >
+              {t("biometric.disable")}
+            </Button>
+          </div>
+        ) : (
+          <Button icon={<Fingerprint className="size-4" />} onClick={() => setAsking(true)}>
+            {t("biometric.enable")}
+          </Button>
+        )}
+      </div>
+      <PasswordPrompt
+        open={asking}
+        onClose={() => setAsking(false)}
+        title={t("biometric.title")}
+        body={t("biometric.enablePrompt")}
+        confirmLabel={t("biometric.enable")}
+        onConfirm={async (password) => {
+          if (!(await keyring.verifyPassword(password))) throw new WrongPasswordError();
+          try {
+            await bio.enable(password, t("biometric.promptEnable"));
+          } catch (e) {
+            if (e instanceof BiometricCancelledError) {
+              setAsking(false);
+              return;
+            }
+            throw e;
+          }
+          setAsking(false);
+          toast.success(t("biometric.enabled"));
+          await refresh();
+        }}
+      />
+    </Card>
   );
 }

@@ -1,8 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Fingerprint } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Mascot } from "@/components/Logo";
 import { Button, Modal, PasswordInput, Input } from "@/components/ui";
 import { useT } from "@/i18n";
+import { biometric, BiometricCancelledError } from "@/lib/biometric";
 import { WrongPasswordError } from "@/lib/crypto/vault";
 import { UnlockThrottledError } from "@/lib/keyring/keyring";
 import { keyring } from "@/extension/popup/keyring";
@@ -17,7 +19,47 @@ export function Unlock() {
   const [confirmText, setConfirmText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => inputRef.current?.focus(), []);
+  const [bioReady, setBioReady] = useState(false);
+
+  const bioUnlock = useCallback(async () => {
+    const bio = biometric();
+    if (!bio) return;
+    setError("");
+    let secret: string;
+    try {
+      secret = await bio.unlock(t("biometric.promptUnlock"));
+    } catch (err) {
+      if (!(err instanceof BiometricCancelledError)) setError(err instanceof Error ? err.message : String(err));
+      setBioReady((await bio.status()).enabled);
+      return;
+    }
+    setBusy(true);
+    try {
+      await keyring.unlock(secret);
+    } catch (err) {
+      if (err instanceof WrongPasswordError) {
+        await bio.disable();
+        setBioReady(false);
+        setError(t("biometric.stale"));
+      } else if (err instanceof UnlockThrottledError) setError(t("unlock.throttled", { s: Math.ceil(err.retryInMs / 1000) }));
+      else setError(err instanceof Error ? err.message : String(err));
+      setBusy(false);
+    }
+  }, [t]);
+
+  // With biometrics on, ask right away; the password stays one tap away.
+  useEffect(() => {
+    const bio = biometric();
+    if (!bio) {
+      inputRef.current?.focus();
+      return;
+    }
+    void bio.status().then((s) => {
+      setBioReady(s.enabled && s.available);
+      if (s.enabled && s.available) void bioUnlock();
+      else inputRef.current?.focus();
+    });
+  }, [bioUnlock]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -58,6 +100,11 @@ export function Unlock() {
             {t("unlock.submit")}
           </Button>
         </form>
+        {bioReady && (
+          <Button variant="secondary" size="lg" block className="mt-3" icon={<Fingerprint className="size-5" />} onClick={() => void bioUnlock()} disabled={busy}>
+            {t("biometric.unlock")}
+          </Button>
+        )}
         <button onClick={() => setResetOpen(true)} className="mt-6 text-sm text-muted underline-offset-2 hover:text-fg hover:underline">
           {t("unlock.forgot")}
         </button>

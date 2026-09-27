@@ -277,7 +277,7 @@ export function Modal({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={cx("relative flex max-h-[92vh] w-full flex-col rounded-t-2xl border border-line bg-surface shadow-pop outline-none sm:rounded-2xl", width)}
+        className={cx("modal-sheet relative flex max-h-[92vh] w-full flex-col rounded-t-2xl border border-line bg-surface shadow-pop outline-none sm:rounded-2xl", width)}
       >
         <div className="flex items-center justify-between gap-4 border-b border-line px-5 py-4">
           <h2 id={titleId} className="text-lg font-semibold">

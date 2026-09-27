@@ -8,6 +8,7 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(BiometricPlugin.class);
         super.onCreate(savedInstanceState);
         // Keep recovery phrases and balances out of screenshots, screen
         // recordings and the recent-apps preview. Debug builds stay capturable
