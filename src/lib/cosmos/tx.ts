@@ -1,4 +1,4 @@
-import { fromUtf8, toUtf8 } from "@cosmjs/encoding";
+import { fromUtf8, toBase64, toUtf8 } from "@cosmjs/encoding";
 import { Registry, type EncodeObject, type GeneratedType, type OfflineSigner } from "@cosmjs/proto-signing";
 import {
   accountFromAny,
@@ -231,10 +231,19 @@ export const msg = {
 };
 
 export interface MsgSummary {
-  kind: "send" | "cw20-send" | "delegate" | "undelegate" | "redelegate" | "claim" | "vote" | "ibc" | "swap" | "curve-buy" | "curve-sell" | "unknown";
+  kind: "send" | "cw20-send" | "delegate" | "undelegate" | "redelegate" | "claim" | "vote" | "ibc" | "swap" | "curve-buy" | "curve-sell" | "contract-execute" | "unknown";
   typeUrl: string;
   fields: Record<string, string>;
   coins?: Array<{ denom: string; amount: string }>;
+}
+
+/** A CosmWasm execute message is JSON by convention, not by protocol. */
+function parseContractMsg(msg: Uint8Array): unknown {
+  try {
+    return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(msg));
+  } catch {
+    return undefined;
+  }
 }
 
 export function summarize(m: EncodeObject): MsgSummary {
@@ -245,7 +254,9 @@ export function summarize(m: EncodeObject): MsgSummary {
       return { kind: "send", typeUrl: m.typeUrl, fields: { to: String(v.toAddress) }, coins: (v.amount as unknown[]).map(coin) };
     case "/cosmwasm.wasm.v1.MsgExecuteContract": {
       const exec = v as unknown as MsgExecuteContract;
-      const parsed = JSON.parse(new TextDecoder().decode(exec.msg));
+      const raw = parseContractMsg(exec.msg);
+      if (raw === undefined) return { kind: "unknown", typeUrl: m.typeUrl, fields: { contract: exec.contract } };
+      const parsed = (raw && typeof raw === "object" ? raw : {}) as { buy?: unknown; sell?: unknown; transfer?: { recipient: string; amount: string } };
       if (parsed.buy && exec.funds.length === 1) {
         return { kind: "curve-buy", typeUrl: m.typeUrl, fields: { contract: exec.contract }, coins: exec.funds.map((c) => ({ denom: c.denom, amount: c.amount })) };
       }
@@ -260,7 +271,12 @@ export function summarize(m: EncodeObject): MsgSummary {
           coins: [{ denom: `cw20:${exec.contract}`, amount: parsed.transfer.amount }],
         };
       }
-      return { kind: "unknown", typeUrl: m.typeUrl, fields: { contract: exec.contract, msg: JSON.stringify(parsed) } };
+      return {
+        kind: "contract-execute",
+        typeUrl: m.typeUrl,
+        fields: { contract: exec.contract, msg: JSON.stringify(raw) },
+        coins: exec.funds.length ? exec.funds.map((c) => ({ denom: c.denom, amount: c.amount })) : undefined,
+      };
     }
     case "/cosmos.staking.v1beta1.MsgDelegate":
       return { kind: "delegate", typeUrl: m.typeUrl, fields: { validator: String(v.validatorAddress) }, coins: [coin(v.amount)] };
@@ -302,7 +318,7 @@ export function msgsToJson(msgs: EncodeObject[]): string {
   return JSON.stringify(
     msgs.map((m) => {
       const value = m.typeUrl === "/cosmwasm.wasm.v1.MsgExecuteContract"
-        ? { ...(m.value as MsgExecuteContract), msg: JSON.parse(new TextDecoder().decode((m.value as MsgExecuteContract).msg)) }
+        ? { ...(m.value as MsgExecuteContract), msg: parseContractMsg((m.value as MsgExecuteContract).msg) ?? toBase64((m.value as MsgExecuteContract).msg) }
         : m.value;
       return { "@type": m.typeUrl, ...value };
     }),

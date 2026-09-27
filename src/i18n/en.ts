@@ -386,6 +386,7 @@ export const en = {
   "tx.kind.swap": "Swap",
   "tx.kind.curve-buy": "Launchpad buy",
   "tx.kind.curve-sell": "Launchpad sell",
+  "tx.kind.contract-execute": "Contract call",
   "tx.kind.unknown": "Other message",
   "tx.field.to": "To",
   "tx.field.from": "From",
