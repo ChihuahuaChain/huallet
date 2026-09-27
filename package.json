@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.1",
   "type": "module",
-  "description": "Huallet \u2014 web wallet for Chihuahua Chain and the Cosmos ecosystem",
+  "description": "Huallet — web wallet for Chihuahua Chain and the Cosmos ecosystem",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build && node scripts/third-party-notices.mjs dist && cp LICENSE NOTICE dist/",
@@ -17,6 +17,7 @@
     "test:android": "node e2e/android.e2e.mjs"
   },
   "dependencies": {
+    "@capacitor-mlkit/barcode-scanning": "^8.2.1",
     "@capacitor/android": "^8.5.2",
     "@capacitor/app": "^8.1.1",
     "@capacitor/core": "^8.5.2",

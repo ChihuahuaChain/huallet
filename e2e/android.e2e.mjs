@@ -137,6 +137,23 @@ try {
   await page.waitForSelector(`button[aria-label="Lock wallet"]`, { timeout: 20000 });
   log("wrong password refused, right one accepted");
 
+  // Swipe between the bottom-bar tabs with a real finger gesture.
+  await page.evaluate((h) => (window.location.hash = h), "/");
+  await sleep(1500);
+  const [w, h] = adb("shell", "wm", "size").match(/(\d+)x(\d+)/).slice(1).map(Number);
+  adb("shell", "input", "swipe", String(Math.round(w * 0.85)), String(Math.round(h * 0.55)), String(Math.round(w * 0.15)), String(Math.round(h * 0.55)), "150");
+  await sleep(1500);
+  const afterLeft = await page.evaluate(() => location.hash);
+  adb("shell", "input", "swipe", String(Math.round(w * 0.15)), String(Math.round(h * 0.55)), String(Math.round(w * 0.85)), String(Math.round(h * 0.55)), "150");
+  await sleep(1500);
+  const afterRight = await page.evaluate(() => location.hash);
+  if (afterLeft !== "#/stake" || !["#/", "#"].includes(afterRight)) throw new Error(`Swipe went to ${afterLeft} then ${afterRight}`);
+  log("swipe left → Stake, swipe right → Dashboard");
+
+  await page.evaluate((h) => (window.location.hash = h), "/send");
+  await waitText(page, "Scan QR");
+  log("Send offers Scan QR" + ((await text(page)).includes("Tap NFC") ? " and Tap NFC" : " (no NFC on this device)"));
+
   // Biometrics: needs a fingerprint enrolled on the emulator (adb emu finger).
   await page.evaluate((h) => (window.location.hash = h), "/settings/security");
   await waitText(page, "Biometric unlock");
@@ -168,6 +185,17 @@ try {
     await finger();
     await page.waitForSelector(`button[aria-label="Lock wallet"]`, { timeout: 20000 });
     log("after an app restart: unlocked with the fingerprint");
+
+    await page.evaluate((h) => (window.location.hash = h), "/settings/accounts");
+    await sleep(1500);
+    await page.click(`button[aria-label="Reveal secret"]`);
+    await waitText(page, "Use fingerprint or face");
+    await click(page, "Use fingerprint or face");
+    await finger();
+    await waitText(page, "abandon", 15000);
+    log("recovery phrase shown only after the fingerprint");
+    await page.keyboard.press("Escape");
+    await sleep(800);
   }
 
   if (errors.length) throw new Error("Page errors: " + errors.join(" | "));

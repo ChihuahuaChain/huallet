@@ -18,7 +18,8 @@ import {
   Settings,
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { useSwipeTabs } from "@/hooks/useSwipeTabs";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useT, type MessageKey } from "@/i18n";
 import { useAddress } from "@/hooks/queries";
 import { explorerAccountUrl } from "@/lib/chains/types";
@@ -42,6 +43,8 @@ const NAV: Array<{ to: string; key: MessageKey; icon: typeof LayoutDashboard; mo
   { to: "/history", key: "nav.history", icon: History, mobile: true },
   { to: "/settings", key: "nav.settings", icon: Settings, mobile: true },
 ];
+
+const MOBILE_TABS = NAV.filter((n) => n.mobile).map((n) => n.to);
 
 function useClickOutside(ref: React.RefObject<HTMLElement | null>, onOutside: () => void) {
   useEffect(() => {
@@ -178,6 +181,9 @@ export function AppShell({ menu = <WalletMenu />, compact = false }: { menu?: Re
   const t = useT();
   const { hideBalances, set } = useSettings();
   const localKeys = useWallet((s) => s.backend?.id.startsWith("local:") ?? false);
+  const mainRef = useRef<HTMLElement>(null);
+  const { pathname } = useLocation();
+  useSwipeTabs(mainRef, MOBILE_TABS);
 
   return (
     <div className="app-shell min-h-screen lg:flex">
@@ -230,7 +236,7 @@ export function AppShell({ menu = <WalletMenu />, compact = false }: { menu?: Re
             {menu}
           </div>
         </header>
-        <main className={cx("mx-auto max-w-6xl lg:px-8 lg:py-8", compact ? "px-3 py-4" : "px-4 py-6")}>
+        <main ref={mainRef} key={pathname} className={cx("swipe-page mx-auto min-h-[70vh] max-w-6xl lg:px-8 lg:py-8", compact ? "px-3 py-4" : "px-4 py-6")}>
           <Outlet />
         </main>
       </div>
