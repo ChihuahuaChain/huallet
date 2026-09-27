@@ -18,7 +18,7 @@ export function SettingsLayout({ tabs = WEB_SETTINGS_TABS }: { tabs?: SettingsTa
     <div>
       <PageHeader title={t("nav.settings")} />
       <div className="grid gap-6 md:grid-cols-[200px_1fr]">
-        <nav className="flex gap-1 overflow-x-auto md:flex-col" aria-label={t("nav.settings")}>
+        <nav className="flex flex-wrap gap-1 md:flex-col md:flex-nowrap" aria-label={t("nav.settings")}>
           {tabs.map((tab) => (
             <NavLink
               key={tab.to}

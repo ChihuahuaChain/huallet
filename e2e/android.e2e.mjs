@@ -96,8 +96,10 @@ try {
     await sleep(1200);
     const t = await text(page);
     if (/Something went wrong|Unexpected Application Error/.test(t)) throw new Error(`Route ${r} crashed: ${t.slice(0, 300)}`);
+    const [sw, cw] = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
+    if (sw > cw) throw new Error(`Route ${r} scrolls sideways: ${sw}px content in ${cw}px`);
   }
-  log(`all ${routes.length} routes render`);
+  log(`all ${routes.length} routes render, none scrolls sideways`);
 
   await page.evaluate((h) => (window.location.hash = h), "/receive");
   await sleep(1500);

@@ -132,3 +132,33 @@ html[data-view="popup"] #root,
 html[data-view="approval"] #root {
   min-height: 600px;
 }
+
+/* Android app: edge-to-edge. Capacitor passes the system bar sizes as
+   --safe-area-inset-* (newer WebViews) and pads the view natively on older
+   ones, where these resolve to 0. */
+html[data-view="mobile"] {
+  --sat: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --sab: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --sal: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  --sar: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+}
+html[data-view="mobile"] body {
+  overflow-x: clip;
+  padding-left: var(--sal);
+  padding-right: var(--sar);
+}
+html[data-view="mobile"] #root > :not(.app-shell) {
+  padding-top: var(--sat);
+  padding-bottom: var(--sab);
+}
+html[data-view="mobile"] .app-shell header {
+  padding-top: var(--sat);
+}
+html[data-view="mobile"] .app-shell > nav {
+  padding-bottom: var(--sab);
+  padding-left: var(--sal);
+  padding-right: var(--sar);
+}
+html[data-view="mobile"] .app-shell-body {
+  padding-bottom: calc(5rem + var(--sab));
+}
