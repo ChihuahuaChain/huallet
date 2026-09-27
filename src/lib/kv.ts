@@ -67,19 +67,36 @@ export function extensionKV(area: "local" | "session", prefix = "huallet:"): KV 
   };
 }
 
+/** Where zustand-persisted app state lives when not in the extension: the
+ * Android app sets its own store here before any state is loaded. */
+let appStorageOverride: { getItem(name: string): Promise<string | null>; setItem(name: string, value: string): Promise<void>; removeItem(name: string): Promise<void>; clear(): Promise<void> } | null = null;
+
+export function setAppStorage(storage: NonNullable<typeof appStorageOverride>) {
+  appStorageOverride = storage;
+}
+
+/** Wipes everything the wallet stored (used by "reset wallet"). */
+export async function clearAllStorage(): Promise<void> {
+  if (appStorageOverride) return appStorageOverride.clear();
+  await extApi()?.storage.local.clear();
+}
+
 export const appStateStorage = {
   getItem: async (name: string): Promise<string | null> => {
+    if (appStorageOverride) return appStorageOverride.getItem(name);
     const api = extApi();
     if (!api) return localStorage.getItem(name);
     const r = await (api.storage.local as unknown as StorageArea).get(name);
     return (r[name] as string | undefined) ?? null;
   },
   setItem: async (name: string, value: string): Promise<void> => {
+    if (appStorageOverride) return appStorageOverride.setItem(name, value);
     const api = extApi();
     if (!api) return localStorage.setItem(name, value);
     await (api.storage.local as unknown as StorageArea).set({ [name]: value });
   },
   removeItem: async (name: string): Promise<void> => {
+    if (appStorageOverride) return appStorageOverride.removeItem(name);
     const api = extApi();
     if (!api) return localStorage.removeItem(name);
     await (api.storage.local as unknown as StorageArea).remove(name);

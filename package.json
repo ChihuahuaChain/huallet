@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.1",
   "type": "module",
-  "description": "Huallet — web wallet for Chihuahua Chain and the Cosmos ecosystem",
+  "description": "Huallet \u2014 web wallet for Chihuahua Chain and the Cosmos ecosystem",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build && node scripts/third-party-notices.mjs dist && cp LICENSE NOTICE dist/",
@@ -12,9 +12,15 @@
     "test": "vitest run",
     "build:ext": "node scripts/build-extension.mjs",
     "test:e2e": "node e2e/extension.e2e.mjs && node e2e/ledger.e2e.mjs",
-    "package:source": "node scripts/package-source.mjs"
+    "package:source": "node scripts/package-source.mjs",
+    "build:mobile": "node scripts/build-mobile.mjs && npx cap sync android",
+    "test:android": "node e2e/android.e2e.mjs"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/preferences": "^8.0.1",
     "@cosmjs/amino": "^0.39.0",
     "@cosmjs/crypto": "^0.39.0",
     "@cosmjs/encoding": "^0.39.0",
@@ -36,6 +42,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
     "@tailwindcss/vite": "^4.3.3",
     "@types/chrome": "^0.3.0",
     "@types/node": "^26.6.2",

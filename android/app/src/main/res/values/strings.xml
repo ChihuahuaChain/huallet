@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Huallet</string>
+    <string name="title_activity_main">Huallet</string>
+    <string name="package_name">wtf.chihuahua.huallet</string>
+    <string name="custom_url_scheme">wtf.chihuahua.huallet</string>
+</resources>
