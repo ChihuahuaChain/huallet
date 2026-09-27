@@ -4,12 +4,32 @@ import { QrCode } from "@/components/QrCode";
 import { toast } from "@/components/Toaster";
 import { Alert, Button, Field, Input, Modal, Select } from "@/components/ui";
 import { useT } from "@/i18n";
+import { fromBaseUnits, toBaseUnits } from "@/lib/format";
 import type { ChainInfo } from "@/lib/chains/types";
 import { nfcApi, qrScanner } from "@/lib/native";
 import { buildPaymentUri, parsePaymentRequest, type PaymentRequest } from "@/lib/payreq";
 
+export interface PayToken {
+  key: string;
+  symbol: string;
+  decimals: number;
+  amount: bigint;
+}
+
+/** What the payer chose before tapping: it wins over any amount in the request. */
+export interface ChosenAmount {
+  tokenKey: string;
+  amount: string;
+}
+
 /** "Scan QR" and "Tap NFC" buttons for the Send form; hidden where the phone features are missing. */
-export function PayRequestButtons({ onRequest }: { onRequest: (r: PaymentRequest, via: "qr" | "nfc") => void }) {
+export function PayRequestButtons({
+  tokens,
+  onRequest,
+}: {
+  tokens: PayToken[];
+  onRequest: (r: PaymentRequest, via: "qr" | "nfc", chosen?: ChosenAmount) => void;
+}) {
   const t = useT();
   const scanner = qrScanner();
   const nfc = nfcApi();
@@ -43,11 +63,12 @@ export function PayRequestButtons({ onRequest }: { onRequest: (r: PaymentRequest
         </Button>
       )}
       {reading && (
-        <NfcReadModal
+        <NfcPayModal
+          tokens={tokens}
           onClose={() => setReading(false)}
-          onRequest={(r) => {
+          onRequest={(r, chosen) => {
             setReading(false);
-            onRequest(r, "nfc");
+            onRequest(r, "nfc", chosen);
           }}
         />
       )}
@@ -55,7 +76,78 @@ export function PayRequestButtons({ onRequest }: { onRequest: (r: PaymentRequest
   );
 }
 
-function NfcReadModal({ onClose, onRequest }: { onClose: () => void; onRequest: (r: PaymentRequest) => void }) {
+/** Tap to pay: the payer picks the amount first, then holds the phone to the other one. */
+function NfcPayModal({
+  tokens,
+  onClose,
+  onRequest,
+}: {
+  tokens: PayToken[];
+  onClose: () => void;
+  onRequest: (r: PaymentRequest, chosen: ChosenAmount) => void;
+}) {
+  const t = useT();
+  const [tokenKey, setTokenKey] = useState(tokens[0]?.key ?? "");
+  const [amount, setAmount] = useState("");
+  const [chosen, setChosen] = useState<ChosenAmount | null>(null);
+  const token = tokens.find((x) => x.key === tokenKey);
+  let error = "";
+  let ok = false;
+  if (amount && token) {
+    try {
+      const v = toBaseUnits(amount, token.decimals);
+      if (v <= 0n) error = t("send.error.zero");
+      else if (v > token.amount) error = t("send.error.exceeds");
+      else ok = true;
+    } catch (e) {
+      error = e instanceof Error ? e.message : String(e);
+    }
+  }
+
+  return (
+    <Modal open onClose={onClose} title={t("payreq.tapTitle")} size="sm">
+      {!chosen ? (
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (ok) setChosen({ tokenKey, amount });
+          }}
+        >
+          {tokens.length === 0 ? (
+            <Alert tone="warning">{t("send.noTokensBody")}</Alert>
+          ) : (
+            <>
+              <p className="text-sm text-muted">{t("payreq.payAmountFirst")}</p>
+              <div className="grid grid-cols-[1fr_auto] gap-2">
+                <Field label={t("send.amount")} error={error || undefined}>
+                  <Input autoFocus inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(",", ".").trim())} placeholder="0" />
+                </Field>
+                <Field label={t("send.token")}>
+                  <Select value={tokenKey} onChange={(e) => setTokenKey(e.target.value)}>
+                    {tokens.map((x) => <option key={x.key} value={x.key}>{x.symbol}</option>)}
+                  </Select>
+                </Field>
+              </div>
+              {token && <p className="text-xs text-muted">{t("send.available")}: {fromBaseUnits(token.amount, token.decimals)} {token.symbol}</p>}
+            </>
+          )}
+          <Button type="submit" block icon={<NfcIcon className="size-4" />} disabled={!ok}>
+            {t("payreq.tapNow")}
+          </Button>
+        </form>
+      ) : (
+        <NfcReading
+          label={`${chosen.amount} ${token?.symbol ?? ""}`}
+          onBack={() => setChosen(null)}
+          onRequest={(r) => onRequest(r, chosen)}
+        />
+      )}
+    </Modal>
+  );
+}
+
+function NfcReading({ label, onBack, onRequest }: { label: string; onBack: () => void; onRequest: (r: PaymentRequest) => void }) {
   const t = useT();
   const nfc = nfcApi()!;
   const [error, setError] = useState("");
@@ -77,14 +169,13 @@ function NfcReadModal({ onClose, onRequest }: { onClose: () => void; onRequest: 
     };
   }, [nfc, onRequest, t]);
   return (
-    <Modal open onClose={onClose} title={t("payreq.tapTitle")} size="sm">
-      <div className="flex flex-col items-center gap-4 py-4 text-center">
-        <NfcPulse />
-        <p className="text-sm text-muted">{t("payreq.tapBody")}</p>
-        {error && <Alert tone="warning">{error}</Alert>}
-        <Button variant="secondary" block onClick={onClose}>{t("common.cancel")}</Button>
-      </div>
-    </Modal>
+    <div className="flex flex-col items-center gap-4 py-2 text-center">
+      <NfcPulse />
+      <div className="font-display text-2xl font-bold">{label}</div>
+      <p className="text-sm text-muted">{t("payreq.tapBody")}</p>
+      {error && <Alert tone="warning">{error}</Alert>}
+      <Button variant="secondary" block onClick={onBack}>{t("payreq.changeAmount")}</Button>
+    </div>
   );
 }
 
