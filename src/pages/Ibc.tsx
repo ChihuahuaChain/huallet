@@ -6,7 +6,7 @@ import { Amount } from "@/components/Amount";
 import { PageHeader } from "@/components/layout/AppShell";
 import { RecipientInput, useRecipientError } from "@/components/RecipientInput";
 import { requestTx } from "@/components/TxModal";
-import { Alert, Button, Card, Field, Input, Select, Spinner, Textarea, TokenIcon } from "@/components/ui";
+import { Alert, Button, Card, Field, Input, Select, Spinner, TokenIcon } from "@/components/ui";
 import { useAddress } from "@/hooks/queries";
 import { useT } from "@/i18n";
 import { fetchIbcChannel } from "@/lib/chains/registry";
@@ -188,7 +188,7 @@ export function IbcPage() {
           </Field>
 
           <Field label={t("send.memo")} hint={t("ibc.memoHint")}>
-            <Textarea value={memo} onChange={(e) => setMemo(e.target.value)} rows={2} className="min-h-0" spellCheck={false} />
+            <Input value={memo} onChange={(e) => setMemo(e.target.value)} maxLength={256} autoComplete="off" spellCheck={false} />
           </Field>
 
           <Alert tone="info" icon={<Info className="size-4 text-muted" />}>{t("ibc.note")}</Alert>

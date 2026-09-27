@@ -8,7 +8,7 @@ import { Amount, Fiat } from "@/components/Amount";
 import { PageHeader } from "@/components/layout/AppShell";
 import { RecipientInput, useRecipientError } from "@/components/RecipientInput";
 import { requestTx } from "@/components/TxModal";
-import { Alert, Button, Card, Field, Input, Select, Textarea } from "@/components/ui";
+import { Alert, Button, Card, Field, Input, Select } from "@/components/ui";
 import { useAddress, useBalances, useCw20Balances, usePrices } from "@/hooks/queries";
 import { useT } from "@/i18n";
 import { feeCurrencyOf, type ChainInfo } from "@/lib/chains/types";
@@ -187,7 +187,7 @@ export function SendPage() {
           </Field>
 
           <Field label={t("send.memo")} hint={t("send.memoHint")} error={memoSuspicious ? t("send.memoSecret") : undefined}>
-            <Textarea value={memo} onChange={(e) => setMemo(e.target.value)} rows={2} maxLength={256} className="min-h-0" autoComplete="off" spellCheck={false} />
+            <Input value={memo} onChange={(e) => setMemo(e.target.value)} maxLength={256} autoComplete="off" spellCheck={false} />
           </Field>
 
           {otherChain && (
