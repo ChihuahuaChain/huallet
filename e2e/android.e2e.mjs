@@ -107,6 +107,16 @@ try {
   if (address !== "chihuahua19rl4cm2hmr8afy4kldpxz3fka4jguq0al4qn7h") throw new Error(`Unexpected address ${address}`);
   log("receive address matches the extension:", address);
 
+  await page.click(`button[aria-label^="Show QR code full screen"]`);
+  await sleep(1000);
+  const fullQr = await page.evaluate(() => !!document.querySelector('[role=dialog][aria-label="Show QR code full screen"]'));
+  const bright = /sbrt=1\.0|screenBrightness=1\.0/.test(adb("shell", "dumpsys", "window", "windows"));
+  await page.click('[role=dialog][aria-label="Show QR code full screen"]');
+  await sleep(800);
+  const restored = !/sbrt=1\.0|screenBrightness=1\.0/.test(adb("shell", "dumpsys", "window", "windows"));
+  if (!fullQr || !bright || !restored) throw new Error(`QR full screen: shown=${fullQr} bright=${bright} restored=${restored}`);
+  log("tapping the QR shows it full screen at full brightness, closing restores it");
+
   adb("shell", "cmd", "uimode", "night", "yes");
   await sleep(1500);
   const dark = await page.evaluate(() => document.documentElement.dataset.theme);

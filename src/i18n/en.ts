@@ -348,6 +348,8 @@ export const en = {
   "payreq.changeAmount": "Change amount",
   "payreq.orQr": "Or show it as a QR code",
   "payreq.stop": "Stop sharing",
+  "qr.enlarge": "Show QR code full screen",
+  "qr.tapToClose": "Tap anywhere to close",
   "receive.title": "Receive",
   "receive.subtitle": "Share your address to receive tokens.",
   "receive.explorer": "Explorer",
