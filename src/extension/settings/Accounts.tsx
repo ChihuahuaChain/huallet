@@ -31,10 +31,10 @@ export function AccountsSettings() {
           {keys.map((k) => (
             <div key={k.id} className="flex flex-wrap items-center gap-3 px-3 py-3">
               <Monogram text={k.name} />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 font-semibold">
+              <div className="min-w-0 flex-1 basis-40">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-semibold">
                   {k.name}
-                  {!k.backedUp && <Badge tone="warning"><ShieldAlert className="size-3" />{t("backup.notBackedUp")}</Badge>}
+                  {!k.backedUp && <Badge tone="warning" className="whitespace-nowrap"><ShieldAlert className="size-3" />{t("backup.notBackedUp")}</Badge>}
                 </div>
                 <div className="text-xs text-muted">
                   {k.type === "mnemonic"
@@ -44,7 +44,7 @@ export function AccountsSettings() {
                       : t("accounts.type.privateKey")}
                 </div>
               </div>
-              <div className="flex gap-1">
+              <div className="ml-auto flex items-center gap-1">
                 {!k.backedUp && <Link to={`/backup/${k.id}`}><Button size="sm">{t("backup.now")}</Button></Link>}
                 <Button size="sm" variant="ghost" onClick={() => { setRenaming(k); setName(k.name); }} aria-label={t("accounts.rename")}><Pencil className="size-4" /></Button>
                 {k.type !== "ledger" && <Button size="sm" variant="ghost" onClick={() => setRevealFor(k)} aria-label={t("accounts.reveal")}><KeyRound className="size-4" /></Button>}

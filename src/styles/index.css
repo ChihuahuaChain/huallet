@@ -162,3 +162,7 @@ html[data-view="mobile"] .app-shell > nav {
 html[data-view="mobile"] .app-shell-body {
   padding-bottom: calc(5rem + var(--sab));
 }
+html[data-view="mobile"] .modal-sheet {
+  max-height: calc(92vh - var(--sat));
+  padding-bottom: var(--sab);
+}

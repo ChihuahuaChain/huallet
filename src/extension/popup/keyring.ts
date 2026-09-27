@@ -1,4 +1,5 @@
 import type { KeyMeta, NewKey } from "@/lib/keyring/keyring";
+import { biometric } from "@/lib/biometric";
 import { clearAllStorage } from "@/lib/kv";
 import { useKeyring } from "../state/keyringStore";
 import { bg } from "./background";
@@ -21,10 +22,15 @@ export const keyring = {
   removeKey: (id: string, password: string) => after(bg({ type: "removeKey", id, password })),
   revealSecret: (id: string, password: string) => bg<string>({ type: "revealSecret", id, password }),
   pendingBackupSecret: (id: string) => bg<string>({ type: "pendingBackupSecret", id }),
-  changePassword: (oldPassword: string, newPassword: string) => bg({ type: "changePassword", oldPassword, newPassword }),
+  changePassword: async (oldPassword: string, newPassword: string) => {
+    await bg({ type: "changePassword", oldPassword, newPassword });
+    // The stored password is stale now; the user turns biometrics on again.
+    await biometric()?.disable();
+  },
   verifyPassword: (password: string) => bg<boolean>({ type: "verifyPassword", password }),
   reset: async (password = "") => {
     await bg({ type: "reset", password });
+    await biometric()?.disable();
     await clearAllStorage();
     window.location.reload();
   },

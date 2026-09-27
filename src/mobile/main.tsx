@@ -5,11 +5,14 @@ import { createRoot } from "react-dom/client";
 import "@/styles/index.css";
 import { createWalletCore } from "@/extension/background/core";
 import { setInProcessBackground } from "@/extension/popup/background";
+import { setBiometric } from "@/lib/biometric";
 import { setAppStorage } from "@/lib/kv";
+import { androidBiometric } from "./biometric";
 import { mobilePlatform, prefsAppStorage } from "./platform";
 
 // Storage and transport must be in place before any store loads.
 setAppStorage(prefsAppStorage);
+setBiometric(androidBiometric);
 const refreshKeyring = () => import("@/extension/state/keyringStore").then((m) => m.useKeyring.getState().refresh());
 const core = createWalletCore(mobilePlatform(() => void refreshKeyring()));
 setInProcessBackground(core.handleUi);

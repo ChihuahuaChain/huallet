@@ -137,6 +137,39 @@ try {
   await page.waitForSelector(`button[aria-label="Lock wallet"]`, { timeout: 20000 });
   log("wrong password refused, right one accepted");
 
+  // Biometrics: needs a fingerprint enrolled on the emulator (adb emu finger).
+  await page.evaluate((h) => (window.location.hash = h), "/settings/security");
+  await waitText(page, "Biometric unlock");
+  if ((await text(page)).includes("Add a fingerprint or face")) {
+    log("biometrics skipped: no fingerprint enrolled on this device");
+  } else {
+    const finger = async () => {
+      await sleep(1500);
+      adb("emu", "finger", "touch", "1");
+      await sleep(500);
+      adb("emu", "finger", "remove", "1");
+    };
+    await click(page, "Turn on");
+    await type(page, "[role=dialog] input[type=password]", PASSWORD);
+    await page.evaluate(() => [...document.querySelectorAll("[role=dialog] button")].find((b) => b.innerText.trim() === "Turn on").click());
+    await finger();
+    await waitText(page, "On for this device");
+    log("biometric unlock turned on (password checked, fingerprint confirmed)");
+
+    await page.click(`button[aria-label="Lock wallet"]`);
+    await waitText(page, "Unlock with biometrics");
+    await finger();
+    await page.waitForSelector(`button[aria-label="Lock wallet"]`, { timeout: 20000 });
+    log("locked, then unlocked with the fingerprint (prompt shown automatically)");
+
+    browser.disconnect();
+    ({ browser, page } = await launch());
+    await waitText(page, "Unlock with biometrics");
+    await finger();
+    await page.waitForSelector(`button[aria-label="Lock wallet"]`, { timeout: 20000 });
+    log("after an app restart: unlocked with the fingerprint");
+  }
+
   if (errors.length) throw new Error("Page errors: " + errors.join(" | "));
   console.log("ANDROID E2E OK");
 } finally {
