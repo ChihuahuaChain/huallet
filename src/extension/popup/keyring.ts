@@ -1,5 +1,5 @@
 import type { KeyMeta, NewKey } from "@/lib/keyring/keyring";
-import { extApi } from "@/lib/kv";
+import { clearAllStorage } from "@/lib/kv";
 import { useKeyring } from "../state/keyringStore";
 import { bg } from "./background";
 
@@ -25,7 +25,7 @@ export const keyring = {
   verifyPassword: (password: string) => bg<boolean>({ type: "verifyPassword", password }),
   reset: async (password = "") => {
     await bg({ type: "reset", password });
-    await extApi()?.storage.local.clear();
+    await clearAllStorage();
     window.location.reload();
   },
 };
