@@ -119,51 +119,78 @@ export function NfcReceive({ chain, address }: { chain: ChainInfo; address?: str
 
 function NfcReceiveModal({ chain, address, onClose }: { chain: ChainInfo; address: string; onClose: () => void }) {
   const t = useT();
-  const nfc = nfcApi()!;
   const [denom, setDenom] = useState(chain.currencies[0]?.coinMinimalDenom ?? "");
   const [amount, setAmount] = useState("");
-  const [enabled, setEnabled] = useState(true);
-  const [error, setError] = useState("");
-  const amountOk = amount === "" || /^\d+(\.\d+)?$/.test(amount);
-  const uri = buildPaymentUri({ address, chainId: chain.chainId, amount: amount && amountOk ? amount : undefined, denom: amount ? denom : undefined });
-
-  useEffect(() => {
-    void nfc.status().then((s) => setEnabled(s.enabled));
-  }, [nfc]);
-  useEffect(() => {
-    nfc.startEmulation(uri).catch((e) => setError(e instanceof Error ? e.message : String(e)));
-  }, [nfc, uri]);
-  useEffect(() => () => void nfc.stopEmulation(), [nfc]);
-
+  const [sharing, setSharing] = useState(false);
+  const amountOk = /^\d+(\.\d+)?$/.test(amount) && Number(amount) > 0;
   const cur = chain.currencies.find((c) => c.coinMinimalDenom === denom);
+
   return (
     <Modal open onClose={onClose} title={t("payreq.receiveNfc")} size="sm">
-      <div className="space-y-4">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <NfcPulse />
-          <p className="text-sm text-muted">{t("payreq.receiveBody")}</p>
-        </div>
-        {!enabled && <Alert tone="warning">{t("payreq.nfcOff")}</Alert>}
-        {error && <Alert tone="danger">{error}</Alert>}
-        <div className="grid grid-cols-[1fr_auto] gap-2">
-          <Field label={t("payreq.amountOptional")} error={amountOk ? undefined : t("send.error.zero")}>
-            <Input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(",", ".").trim())} placeholder="0" />
-          </Field>
-          <Field label={t("send.token")}>
-            <Select value={denom} onChange={(e) => setDenom(e.target.value)}>
-              {chain.currencies.map((c) => <option key={c.coinMinimalDenom} value={c.coinMinimalDenom}>{c.coinDenom}</option>)}
-            </Select>
-          </Field>
-        </div>
-        <details className="rounded-xl bg-surface-2 p-3 text-sm">
-          <summary className="flex cursor-pointer items-center gap-2 font-medium"><QrIcon className="size-4" /> {t("payreq.orQr")}</summary>
-          <div className="mt-3 flex flex-col items-center gap-2">
-            <QrCode value={uri} size={200} />
-            {amount && cur && <div className="text-xs text-muted">{amount} {cur.coinDenom}</div>}
+      {!sharing ? (
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (amountOk) setSharing(true);
+          }}
+        >
+          <p className="text-sm text-muted">{t("payreq.amountFirst")}</p>
+          <div className="grid grid-cols-[1fr_auto] gap-2">
+            <Field label={t("send.amount")} error={amount && !amountOk ? t("send.error.zero") : undefined}>
+              <Input autoFocus inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value.replace(",", ".").trim())} placeholder="0" />
+            </Field>
+            <Field label={t("send.token")}>
+              <Select value={denom} onChange={(e) => setDenom(e.target.value)}>
+                {chain.currencies.map((c) => <option key={c.coinMinimalDenom} value={c.coinMinimalDenom}>{c.coinDenom}</option>)}
+              </Select>
+            </Field>
           </div>
-        </details>
+          <Button type="submit" block icon={<NfcIcon className="size-4" />} disabled={!amountOk}>
+            {t("payreq.startNfc")}
+          </Button>
+        </form>
+      ) : (
+        <NfcSharing
+          uri={buildPaymentUri({ address, chainId: chain.chainId, amount, denom })}
+          label={`${amount} ${cur?.coinDenom ?? ""}`}
+          onEdit={() => setSharing(false)}
+          onClose={onClose}
+        />
+      )}
+    </Modal>
+  );
+}
+
+/** Shares `uri` over NFC while mounted. */
+function NfcSharing({ uri, label, onEdit, onClose }: { uri: string; label: string; onEdit: () => void; onClose: () => void }) {
+  const t = useT();
+  const nfc = nfcApi()!;
+  const [enabled, setEnabled] = useState(true);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    void nfc.status().then((s) => setEnabled(s.enabled));
+    nfc.startEmulation(uri).catch((e) => setError(e instanceof Error ? e.message : String(e)));
+    return () => void nfc.stopEmulation();
+  }, [nfc, uri]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col items-center gap-3 text-center">
+        <NfcPulse />
+        <div className="font-display text-2xl font-bold">{label}</div>
+        <p className="text-sm text-muted">{t("payreq.receiveBody")}</p>
+      </div>
+      {!enabled && <Alert tone="warning">{t("payreq.nfcOff")}</Alert>}
+      {error && <Alert tone="danger">{error}</Alert>}
+      <details className="rounded-xl bg-surface-2 p-3 text-sm">
+        <summary className="flex cursor-pointer items-center gap-2 font-medium"><QrIcon className="size-4" /> {t("payreq.orQr")}</summary>
+        <div className="mt-3 flex justify-center"><QrCode value={uri} size={200} /></div>
+      </details>
+      <div className="flex gap-2">
+        <Button variant="secondary" block onClick={onEdit}>{t("payreq.changeAmount")}</Button>
         <Button variant="secondary" block onClick={onClose}>{t("payreq.stop")}</Button>
       </div>
-    </Modal>
+    </div>
   );
 }
