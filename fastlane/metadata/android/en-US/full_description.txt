@@ -1,0 +1,31 @@
+Huallet is the self-custodial wallet of Chihuahua Chain. Hold, send, stake, swap and vote on HUAHUA and the whole Cosmos ecosystem, with your keys encrypted on your phone.
+
+<b>Your keys, your phone</b>
+<ul>
+<li>Create a wallet (12 or 24 words, with verification) or import a recovery phrase or private key</li>
+<li>Secrets encrypted with AES-256-GCM, key derived from your password (PBKDF2-SHA256, 600,000 iterations)</li>
+<li>Optional fingerprint or face unlock: the password is kept by the phone's secure hardware (Android Keystore) and released only after a biometric check</li>
+<li>Screenshots blocked, no cloud backup of wallet data, auto-lock</li>
+<li>The recovery phrase is shown only after your password or biometrics</li>
+</ul>
+
+<b>Everything Cosmos</b>
+<ul>
+<li>Portfolio across chains: available, staked, rewards, unbonding</li>
+<li>Staking: stake, unstake, redelegate, claim rewards</li>
+<li>Swap on HuahuaSwap, Chihuahua's native DEX</li>
+<li>IBC transfers, channels verified on-chain before sending</li>
+<li>Governance: proposals, live tally, vote</li>
+<li>Chihuahua, Cosmos Hub, Osmosis, Juno and Celestia built in; add any chain from the Cosmos chain registry</li>
+</ul>
+
+<b>Pay and get paid</b>
+<ul>
+<li>Scan an address or payment request QR code (in-app scanner, no Google services)</li>
+<li>Tap to pay over NFC: the receiver's phone shares a payment request, the payer's phone reads it. Only the request goes over NFC, never keys or signatures</li>
+<li>Tap a QR code to show it full screen at full brightness</li>
+</ul>
+
+Every transaction is shown in full before you sign. No analytics, no ads, no trackers.
+
+Huallet talks to public Cosmos RPC/REST endpoints and, if you enable fiat prices, to CoinGecko (only token IDs are sent, never your address).

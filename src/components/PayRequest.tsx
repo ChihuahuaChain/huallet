@@ -6,7 +6,8 @@ import { Alert, Button, Field, Input, Modal, Select } from "@/components/ui";
 import { useT } from "@/i18n";
 import { fromBaseUnits, toBaseUnits } from "@/lib/format";
 import type { ChainInfo } from "@/lib/chains/types";
-import { nfcApi, qrScanner } from "@/lib/native";
+import { canScanQr, nfcApi } from "@/lib/native";
+import { QrScanModal } from "./QrScanner";
 import { buildPaymentUri, parsePaymentRequest, type PaymentRequest } from "@/lib/payreq";
 
 export interface PayToken {
@@ -31,29 +32,25 @@ export function PayRequestButtons({
   onRequest: (r: PaymentRequest, via: "qr" | "nfc", chosen?: ChosenAmount) => void;
 }) {
   const t = useT();
-  const scanner = qrScanner();
+  const scanner = canScanQr();
   const nfc = nfcApi();
   const [nfcOk, setNfcOk] = useState(false);
   const [reading, setReading] = useState(false);
+  const [scanning, setScanning] = useState(false);
   useEffect(() => void nfc?.status().then((s) => setNfcOk(s.supported)), [nfc]);
   if (!scanner && !nfcOk) return null;
 
-  const scan = async () => {
-    try {
-      const text = await scanner!.scan();
-      if (text === null) return;
-      const r = parsePaymentRequest(text);
-      if (r) onRequest(r, "qr");
-      else toast.error(t("payreq.notAddress"));
-    } catch (e) {
-      toast.error(t("payreq.scanFailed"), e instanceof Error ? e.message : String(e));
-    }
+  const onScanned = (text: string) => {
+    setScanning(false);
+    const r = parsePaymentRequest(text);
+    if (r) onRequest(r, "qr");
+    else toast.error(t("payreq.notAddress"));
   };
 
   return (
     <div className="grid grid-cols-2 gap-2">
       {scanner && (
-        <Button type="button" variant="secondary" icon={<ScanLine className="size-4" />} onClick={() => void scan()}>
+        <Button type="button" variant="secondary" icon={<ScanLine className="size-4" />} onClick={() => setScanning(true)}>
           {t("payreq.scan")}
         </Button>
       )}
@@ -62,6 +59,7 @@ export function PayRequestButtons({
           {t("payreq.tap")}
         </Button>
       )}
+      {scanning && <QrScanModal onResult={onScanned} onClose={() => setScanning(false)} />}
       {reading && (
         <NfcPayModal
           tokens={tokens}

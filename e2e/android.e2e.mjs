@@ -69,7 +69,12 @@ async function type(p, selector, value) {
 }
 
 log("install", APK);
-adb("install", "-r", APK);
+try {
+  adb("install", "-r", APK);
+} catch {
+  adb("uninstall", PKG); // a release build (other signature) was installed
+  adb("install", APK);
+}
 adb("shell", "pm", "clear", PKG);
 adb("shell", "cmd", "uimode", "night", "no");
 
@@ -163,6 +168,15 @@ try {
   await page.evaluate((h) => (window.location.hash = h), "/send");
   await waitText(page, "Scan QR");
   log("Send offers Scan QR" + ((await text(page)).includes("Tap NFC") ? " and Tap NFC" : " (no NFC on this device)"));
+  adb("shell", "pm", "grant", PKG, "android.permission.CAMERA");
+  await click(page, "Scan QR");
+  await page.waitForFunction(() => { const v = document.querySelector("[role=dialog] video"); return v && v.readyState >= 2 && v.videoWidth > 0; }, { timeout: 20000 });
+  const cam = await page.evaluate(() => { const v = document.querySelector("[role=dialog] video"); return `${v.videoWidth}x${v.videoHeight}`; });
+  await click(page, "Cancel");
+  await sleep(800);
+  const stopped = await page.evaluate(() => !document.querySelector("video"));
+  if (!stopped) throw new Error("Camera view still open after Cancel");
+  log(`in-app QR scanner streams the camera (${cam}) and closes cleanly`);
 
   // Biometrics: needs a fingerprint enrolled on the emulator (adb emu finger).
   await page.evaluate((h) => (window.location.hash = h), "/settings/security");
