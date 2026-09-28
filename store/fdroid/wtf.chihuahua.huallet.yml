@@ -1,0 +1,48 @@
+# Draft for a merge request to https://gitlab.com/fdroid/fdroiddata
+# (metadata/wtf.chihuahua.huallet.yml). Check the build locally with fdroidserver
+# before submitting: fdroid build -v -l wtf.chihuahua.huallet
+Categories:
+  - Money
+License: Apache-2.0
+AuthorName: ChihuahuaChain
+WebSite: https://chihuahua.wtf
+SourceCode: https://github.com/ChihuahuaChain/huallet
+IssueTracker: https://github.com/ChihuahuaChain/huallet/issues
+
+AutoName: Huallet
+
+RepoType: git
+Repo: https://github.com/ChihuahuaChain/huallet.git
+
+AntiFeatures:
+  NonFreeNet:
+    en-US: Optional fiat prices come from the CoinGecko API.
+
+Builds:
+  - versionName: 1.1.0
+    versionCode: 10100
+    commit: v1.1.0-android
+    subdir: android/app
+    sudo:
+      - apt-get update
+      - apt-get install -y npm
+      - npm install -g n
+      - n 22
+    init: cd ../.. && npm ci
+    prebuild: cd ../.. && node scripts/build-mobile.mjs && npx cap sync android
+    gradle:
+      - yes
+    scanignore:
+      - node_modules
+    scandelete:
+      - node_modules
+
+# Reproducible on our machine; if F-Droid's build matches, it ships our signed
+# APK. If not, remove these two lines and F-Droid signs with its own key.
+AllowedAPKSigningKeys: a16c15eaf77573342454c9a75b02a21a16bca917e4db44db2d57eaf2fc881a70
+Binaries: https://github.com/ChihuahuaChain/huallet/releases/download/v%v-android/huallet-android-%v.apk
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags ^v.*-android$
+CurrentVersion: 1.1.0
+CurrentVersionCode: 10100

@@ -1,0 +1,6 @@
+First Android release.
+- Full wallet: accounts, portfolio, staking, HuahuaSwap, IBC, governance
+- Biometric unlock with the Android Keystore
+- QR scanning and NFC tap-to-pay payment requests
+- Recovery phrase shown only after password or biometrics
+- Follows the device's light/dark mode; swipe between tabs

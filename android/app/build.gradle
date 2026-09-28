@@ -1,5 +1,13 @@
 apply plugin: 'com.android.application'
 
+// Release signing, only when a keystore is configured (F-Droid builds unsigned
+// and signs itself). keystore.properties lives outside the repository:
+// HUALLET_KEYSTORE_PROPERTIES=/path/to/keystore.properties, with storeFile,
+// storePassword, keyAlias and keyPassword.
+def keystorePropsFile = file(System.getenv("HUALLET_KEYSTORE_PROPERTIES") ?: "${System.getProperty('user.home')}/.huallet-release/keystore.properties")
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) keystorePropsFile.withInputStream { keystoreProps.load(it) }
+
 android {
     namespace = "wtf.chihuahua.huallet"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +15,9 @@ android {
         applicationId "wtf.chihuahua.huallet"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // Keep in step with package.json: versionCode = major*10000 + minor*100 + patch.
+        versionCode 10100
+        versionName "1.1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +25,26 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (keystoreProps.storeFile) {
+                storeFile file(keystoreProps.storeFile)
+                storePassword keystoreProps.storePassword
+                keyAlias keystoreProps.keyAlias
+                keyPassword keystoreProps.keyPassword
+            }
+        }
+    }
+    // No Google-encrypted dependency blob in the APK (F-Droid requirement), and
+    // nothing machine-specific, so the build can be reproduced.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
     buildTypes {
         release {
+            if (keystoreProps.storeFile) signingConfig signingConfigs.release
+            vcsInfo.include false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

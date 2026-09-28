@@ -1,10 +1,5 @@
-// Phone-only capabilities (QR scanner, NFC). Set by the Android app at
+// Phone-only capabilities (camera QR scanning, NFC, screen brightness). Set by the Android app at
 // startup; in the extension and the web app they stay null and the UI hides them.
-
-export interface QrScanner {
-  /** Opens the camera; resolves with the text, or null if the user backed out. */
-  scan(): Promise<string | null>;
-}
 
 export interface NfcStatus {
   supported: boolean;
@@ -27,16 +22,17 @@ export interface Screen {
   setMaxBrightness(on: boolean): Promise<void>;
 }
 
-let scanner: QrScanner | null = null;
+let cameraScan = false;
 let nfc: Nfc | null = null;
 let screen: Screen | null = null;
 
-export function setNative(n: { scanner?: QrScanner; nfc?: Nfc; screen?: Screen }) {
-  scanner = n.scanner ?? scanner;
+export function setNative(n: { cameraScan?: boolean; nfc?: Nfc; screen?: Screen }) {
+  cameraScan = n.cameraScan ?? cameraScan;
   nfc = n.nfc ?? nfc;
   screen = n.screen ?? screen;
 }
 
-export const qrScanner = () => scanner;
+/** Whether Send offers the in-app camera QR scanner. */
+export const canScanQr = () => cameraScan;
 export const nfcApi = () => nfc;
 export const screenApi = () => screen;
