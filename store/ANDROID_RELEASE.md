@@ -51,8 +51,10 @@ cd ~/Projects/website_v3 && git add fdroid && git commit -m "F-Droid repo: Huall
 
 ## F-Droid (main catalogue)
 
-`store/fdroid/wtf.chihuahua.huallet.yml` is the draft metadata for
-fdroiddata. F-Droid builds from the tag; if its build matches ours byte for byte it
+`store/fdroid/wtf.chihuahua.huallet.yml` is the metadata submitted to
+fdroiddata (MR from gitlab.com/woofchihuahua/fdroiddata, branch `wtf.chihuahua.huallet`).
+Verified 2026-09-29 in the `fdroidserver:buildserver` image: F-Droid's build of 1.1.0 is
+byte-identical to our signed APK. F-Droid builds from the tag; if its build matches ours byte for byte it
 publishes our signed APK (`Binaries` + `AllowedAPKSigningKeys`), so GitHub and
 F-Droid installs can update each other. Otherwise drop those two keys and
 F-Droid signs with its own key (installs from the two sources then cannot
