@@ -9,13 +9,13 @@ import { setBiometric } from "@/lib/biometric";
 import { setAppStorage } from "@/lib/kv";
 import { setNative } from "@/lib/native";
 import { androidBiometric } from "./biometric";
-import { androidNfc, androidScreen } from "./native";
+import { androidLedger, androidNfc, androidScreen } from "./native";
 import { mobilePlatform, prefsAppStorage } from "./platform";
 
 // Storage and transport must be in place before any store loads.
 setAppStorage(prefsAppStorage);
 setBiometric(androidBiometric);
-setNative({ cameraScan: true, nfc: androidNfc, screen: androidScreen });
+setNative({ cameraScan: true, nfc: androidNfc, screen: androidScreen, ledger: androidLedger });
 const refreshKeyring = () => import("@/extension/state/keyringStore").then((m) => m.useKeyring.getState().refresh());
 const core = createWalletCore(mobilePlatform(() => void refreshKeyring()));
 setInProcessBackground(core.handleUi);
@@ -28,9 +28,11 @@ void NativeApp.addListener("backButton", ({ canGoBack }) => (canGoBack ? history
 document.documentElement.dataset.view = "mobile";
 
 const { PopupApp } = await import("@/extension/popup/App");
+const { LedgerDevicePickerHost } = await import("@/extension/ledger/DevicePicker");
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <PopupApp />
+    <LedgerDevicePickerHost />
   </StrictMode>,
 );

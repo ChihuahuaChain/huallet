@@ -1,5 +1,6 @@
 import { registerPlugin, type PluginListenerHandle } from "@capacitor/core";
-import type { Nfc, NfcStatus, Screen } from "@/lib/native";
+import { fromHex, toHex } from "@cosmjs/encoding";
+import type { LedgerDevice, LedgerNative, Nfc, NfcStatus, Screen } from "@/lib/native";
 
 interface NativeNfc {
   status(): Promise<NfcStatus>;
@@ -33,4 +34,22 @@ const nativeScreen = registerPlugin<{ setMaxBrightness(o: { on: boolean }): Prom
 
 export const androidScreen: Screen = {
   setMaxBrightness: (on) => nativeScreen.setMaxBrightness({ on }),
+};
+
+interface NativeLedger {
+  list(o: { scanMs: number }): Promise<{ devices: LedgerDevice[] }>;
+  open(o: { id: string }): Promise<LedgerDevice>;
+  write(o: { data: string }): Promise<void>;
+  read(o: { timeoutMs: number }): Promise<{ data: string }>;
+  close(): Promise<void>;
+}
+
+const nativeLedger = registerPlugin<NativeLedger>("HualletLedger");
+
+export const androidLedger: LedgerNative = {
+  list: async (scanMs) => (await nativeLedger.list({ scanMs })).devices,
+  open: (id) => nativeLedger.open({ id }),
+  write: (data) => nativeLedger.write({ data: toHex(data) }),
+  read: async (timeoutMs) => fromHex((await nativeLedger.read({ timeoutMs })).data),
+  close: () => nativeLedger.close(),
 };

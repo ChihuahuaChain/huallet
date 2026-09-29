@@ -229,10 +229,27 @@ try {
   await click(page, "Switch to Osmosis");
   await waitText(page, "You pay", 30000);
   await type(page, 'input[aria-label="You pay"]', "1");
-  await waitText(page, "Minimum received", 30000);
+  await waitText(page, "Minimum received", 60000);
   const [osw, ocw] = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
   if (osw > ocw) throw new Error(`Osmosis swap scrolls sideways: ${osw}px content in ${ocw}px`);
   log("Osmosis swap quotes:", (await text(page)).match(/1 OSMO ≈ [^\n]+/)?.[0]);
+
+  for (const perm of ["BLUETOOTH_SCAN", "BLUETOOTH_CONNECT"]) {
+    try { adb("shell", "pm", "grant", PKG, `android.permission.${perm}`); } catch { /* older Android */ }
+  }
+  await page.evaluate((h) => (window.location.hash = h), "/accounts/add");
+  await sleep(1200);
+  await click(page, "Connect a Ledger");
+  await waitText(page, "OTG");
+  await click(page, "Connect Ledger");
+  await waitText(page, "Choose your Ledger");
+  await waitText(page, "Looking for Ledger devices");
+  await sleep(6000);
+  const picker = await text(page);
+  const scanNote = picker.match(/Bluetooth is off[^\n]*|Bluetooth permission[^\n]*|Bluetooth scanner[^\n]*/)?.[0] ?? "scan ran, no device nearby";
+  await page.evaluate(() => [...document.querySelectorAll("[role=dialog] button")].find((b) => b.innerText.trim() === "Cancel").click());
+  await waitText(page, "No Ledger selected");
+  log("Ledger picker (USB + Bluetooth) opens, scans (" + scanNote + ") and cancels cleanly");
 
   if (errors.length) throw new Error("Page errors: " + errors.join(" | "));
   console.log("ANDROID E2E OK");

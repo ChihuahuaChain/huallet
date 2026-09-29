@@ -24,6 +24,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Lets the user allow Huallet to use a Ledger on USB once, instead of at every reconnect
+                 (the Ledger re-enumerates whenever an app is opened on it). -->
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+            <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/ledger_usb_filter" />
+
         </activity>
 
         <provider
@@ -52,7 +59,14 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.NFC" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+    <uses-feature android:name="android.hardware.usb.host" android:required="false" />
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
     <uses-feature android:name="android.hardware.nfc" android:required="false" />
     <uses-feature android:name="android.hardware.nfc.hce" android:required="false" />
 </manifest>

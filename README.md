@@ -28,7 +28,7 @@
 | | |
 |---|---|
 | **Huallet extension** (Chrome, Brave, Edge, Firefox · Manifest V3) | The wallet: creates or imports accounts, keeps keys encrypted on the device, signs from its popup, supports Ledger and lets dApps connect through `window.huallet`. |
-| **Huallet for Android** | The same wallet core running inside the app: biometric unlock with the Android Keystore, QR scanning, NFC tap-to-pay payment requests. No Google Play Services. |
+| **Huallet for Android** | The same wallet core running inside the app: biometric unlock with the Android Keystore, QR scanning, NFC tap-to-pay payment requests, Ledger over USB (OTG) or Bluetooth. No Google Play Services. |
 | **Huallet web app** | A dashboard that never holds keys: it connects to the Huallet extension (or Keplr / Leap) and every signature is approved in the wallet. |
 
 ## Features
@@ -110,7 +110,7 @@ npm run build:ext
 - **Firefox ≥ 140**: open `about:debugging#/runtime/this-firefox`, *Load Temporary Add-on*, select `dist-extension/firefox/manifest.json`.
 - **Android** (JDK 21, Android SDK): `npm run build:mobile && cd android && ./gradlew assembleDebug`; release builds: [store/ANDROID_RELEASE.md](store/ANDROID_RELEASE.md).
 
-Ledger needs WebHID, available in Chromium-based browsers only.
+Ledger needs WebHID, available in Chromium-based browsers only. On Android, Huallet talks to the Ledger directly over a USB (OTG) cable or Bluetooth (Nano X, Stax, Flex).
 
 ## Connect your dApp
 
