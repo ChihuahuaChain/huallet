@@ -1,46 +1,48 @@
-# Draft for a merge request to https://gitlab.com/fdroid/fdroiddata
-# (metadata/wtf.chihuahua.huallet.yml). Check the build locally with fdroidserver
-# before submitting: fdroid build -v -l wtf.chihuahua.huallet
+# Submitted to https://gitlab.com/fdroid/fdroiddata as metadata/wtf.chihuahua.huallet.yml.
+# For a new version: add a Builds entry (commit hash of the v<version>-android tag) and
+# bump CurrentVersion/CurrentVersionCode, or let the F-Droid checkupdates bot do it.
+AntiFeatures:
+  NonFreeNet:
+    en-US: Optional fiat prices come from the CoinGecko API.
 Categories:
-  - Money
+  - Wallet
 License: Apache-2.0
-AuthorName: ChihuahuaChain
+AuthorName: Chihuahua Chain Project
 WebSite: https://chihuahua.wtf
 SourceCode: https://github.com/ChihuahuaChain/huallet
 IssueTracker: https://github.com/ChihuahuaChain/huallet/issues
+Changelog: https://github.com/ChihuahuaChain/huallet/releases
 
 AutoName: Huallet
 
 RepoType: git
 Repo: https://github.com/ChihuahuaChain/huallet.git
-
-AntiFeatures:
-  NonFreeNet:
-    en-US: Optional fiat prices come from the CoinGecko API.
+Binaries: https://github.com/ChihuahuaChain/huallet/releases/download/v%v-android/huallet-android-%v.apk
 
 Builds:
   - versionName: 1.1.0
     versionCode: 10100
-    commit: v1.1.0-android
+    commit: e911f90d4c6f02407a1a25f313b99b6d0f8e2d7c
     subdir: android/app
     sudo:
-      - apt-get update
-      - apt-get install -y npm
-      - npm install -g n
-      - n 22
-    init: cd ../.. && npm ci
-    prebuild: cd ../.. && node scripts/build-mobile.mjs && npx cap sync android
+      - curl -Lo node.tar.gz https://nodejs.org/dist/v22.17.0/node-v22.17.0-linux-x64.tar.gz
+      - echo "0fa01328a0f3d10800623f7107fbcd654a60ec178fab1ef5b9779e94e0419e1a node.tar.gz"
+        | sha256sum -c -
+      - tar xzf node.tar.gz --strip-components=1 -C /usr/local/
+      - rm node.tar.gz
+    init:
+      - cd ../..
+      - npm ci
     gradle:
       - yes
-    scanignore:
-      - node_modules
+    prebuild:
+      - cd ../..
+      - node scripts/build-mobile.mjs
+      - npx cap sync android
     scandelete:
       - node_modules
 
-# Reproducible on our machine; if F-Droid's build matches, it ships our signed
-# APK. If not, remove these two lines and F-Droid signs with its own key.
 AllowedAPKSigningKeys: a16c15eaf77573342454c9a75b02a21a16bca917e4db44db2d57eaf2fc881a70
-Binaries: https://github.com/ChihuahuaChain/huallet/releases/download/v%v-android/huallet-android-%v.apk
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v.*-android$
