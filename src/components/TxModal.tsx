@@ -87,7 +87,15 @@ function MsgRow({ s, chain, denomInfo }: { s: MsgSummary; chain: ChainInfo; deno
           <div key={k} className="flex justify-between gap-3">
             <dt className="text-muted">{t(`tx.field.${k}` as MessageKey)}</dt>
             <dd className="min-w-0 break-all text-right font-mono text-xs leading-5" title={v}>
-              {k === "option" ? t(`gov.option.${v}` as MessageKey) : k === "receive" && denomInfo?.[v] ? denomInfo[v].symbol : v.length > 48 ? shortAddress(v, 16, 10) : v}
+              {k === "option"
+                ? t(`gov.option.${v}` as MessageKey)
+                : k === "receive" && denomInfo?.[v]
+                  ? denomInfo[v].symbol
+                  : k === "minReceived" && denomInfo?.[s.fields.receive]
+                    ? fmt({ denom: s.fields.receive, amount: v })
+                    : v.length > 48
+                      ? shortAddress(v, 16, 10)
+                      : v}
             </dd>
           </div>
         ))}

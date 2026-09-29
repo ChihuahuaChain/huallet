@@ -20,16 +20,28 @@ import { feeCurrencyOf } from "../chains/types";
 import { toBaseUnits } from "../format";
 import { DIRECT_SWAP_TYPE_URL } from "../dex/huahuaswap";
 import { directSwapAminoConverter, MsgDirectSwap } from "../dex/msgDirectSwap";
+import {
+  MsgSplitRouteSwapExactAmountIn,
+  MsgSwapExactAmountIn,
+  splitRouteSwapExactAmountInAminoConverter,
+  swapExactAmountInAminoConverter,
+  type SplitRouteSwapExactAmountInValue,
+  type SwapExactAmountInValue,
+} from "../dex/msgOsmosis";
 import type { VoteOption } from "./rest";
 
 export const registry = new Registry([
   ...defaultRegistryTypes,
   ["/cosmwasm.wasm.v1.MsgExecuteContract", MsgExecuteContract],
   [MsgDirectSwap.typeUrl, MsgDirectSwap as unknown as GeneratedType],
+  [MsgSwapExactAmountIn.typeUrl, MsgSwapExactAmountIn as unknown as GeneratedType],
+  [MsgSplitRouteSwapExactAmountIn.typeUrl, MsgSplitRouteSwapExactAmountIn as unknown as GeneratedType],
 ]);
 
 export const aminoTypes = new AminoTypes({
   [MsgDirectSwap.typeUrl]: directSwapAminoConverter,
+  [MsgSwapExactAmountIn.typeUrl]: swapExactAmountInAminoConverter,
+  [MsgSplitRouteSwapExactAmountIn.typeUrl]: splitRouteSwapExactAmountInAminoConverter,
   ...createDefaultAminoConverters(),
   "/cosmwasm.wasm.v1.MsgExecuteContract": {
     aminoType: "wasm/MsgExecuteContract",
@@ -307,6 +319,34 @@ export function summarize(m: EncodeObject): MsgSummary {
         typeUrl: m.typeUrl,
         fields: { pool: String(d.poolId), receive: d.demandCoinDenom },
         coins: [{ denom: d.offerCoin.denom, amount: d.offerCoin.amount }],
+      };
+    }
+    case MsgSwapExactAmountIn.typeUrl: {
+      const d = v as unknown as SwapExactAmountInValue;
+      return {
+        kind: "swap",
+        typeUrl: m.typeUrl,
+        fields: {
+          pool: d.routes.map((r) => r.poolId.toString()).join(" → "),
+          receive: d.routes[d.routes.length - 1]?.tokenOutDenom ?? "",
+          minReceived: d.tokenOutMinAmount,
+        },
+        coins: [{ denom: d.tokenIn.denom, amount: d.tokenIn.amount }],
+      };
+    }
+    case MsgSplitRouteSwapExactAmountIn.typeUrl: {
+      const d = v as unknown as SplitRouteSwapExactAmountInValue;
+      const total = d.routes.reduce((sum, r) => sum + BigInt(r.tokenInAmount || "0"), 0n);
+      const last = d.routes[0]?.pools[d.routes[0].pools.length - 1];
+      return {
+        kind: "swap",
+        typeUrl: m.typeUrl,
+        fields: {
+          pool: d.routes.map((r) => r.pools.map((p) => p.poolId.toString()).join(" → ")).join(" | "),
+          receive: last?.tokenOutDenom ?? "",
+          minReceived: d.tokenOutMinAmount,
+        },
+        coins: [{ denom: d.tokenInDenom, amount: total.toString() }],
       };
     }
     default:
