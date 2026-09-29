@@ -1,0 +1,11 @@
+Categories:
+  - Money
+License: Apache-2.0
+AuthorName: Chihuahua Chain Project
+WebSite: https://chihuahua.wtf
+SourceCode: https://github.com/ChihuahuaChain/huallet
+IssueTracker: https://github.com/ChihuahuaChain/huallet/issues
+Changelog: https://github.com/ChihuahuaChain/huallet/releases
+AntiFeatures:
+  NonFreeNet:
+    en-US: Optional fiat prices come from the CoinGecko API.

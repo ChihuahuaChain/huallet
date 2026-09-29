@@ -15,7 +15,8 @@
     "package:source": "node scripts/package-source.mjs",
     "build:mobile": "node scripts/build-mobile.mjs && npx cap sync android",
     "test:android": "node e2e/android.e2e.mjs",
-    "release:android": "node scripts/release-android.mjs"
+    "release:android": "node scripts/release-android.mjs",
+    "fdroid:repo": "node scripts/fdroid-repo.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
