@@ -12,7 +12,8 @@
 <p align="center">
   <a href="https://chromewebstore.google.com/detail/huallet/fjknmpfabobcbpmcklpoefjpdpmpnhmo"><b>Chrome Web Store</b></a> ·
   <a href="https://addons.mozilla.org/firefox/addon/huallet/"><b>Firefox Add-ons</b></a> ·
-  <a href="https://github.com/ChihuahuaChain/huallet/releases/latest"><b>Android APK</b></a>
+  <a href="https://github.com/ChihuahuaChain/huallet/releases/latest"><b>Android APK</b></a> ·
+  <a href="https://chihuahua.wtf/fdroid/repo?fingerprint=284E1A73DDA517FC7406F780B612CB5D22F2768A60FEDEB054FDD4BF243D7695"><b>F-Droid repo</b></a>
 </p>
 
 <p align="center">
@@ -91,6 +92,11 @@ apksigner verify --print-certs huallet-android-<version>.apk
 ```
 
 Updates are signed with the same key; an APK signed with any other certificate is not ours.
+
+To get updates automatically:
+
+- **F-Droid**: add our repository — open [chihuahua.wtf/fdroid/repo](https://chihuahua.wtf/fdroid/repo?fingerprint=284E1A73DDA517FC7406F780B612CB5D22F2768A60FEDEB054FDD4BF243D7695) on the phone, or in F-Droid go to *Settings → Repositories → +* and scan the QR code on that page. Repository key fingerprint (SHA-256): `284E1A73DDA517FC7406F780B612CB5D22F2768A60FEDEB054FDD4BF243D7695`. It serves the same signed APK as GitHub, so the two can update each other.
+- **Obtainium**: [add Huallet](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/ChihuahuaChain/huallet), or add `https://github.com/ChihuahuaChain/huallet` as a GitHub source.
 
 **From source** (Node.js 22):
 

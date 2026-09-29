@@ -31,7 +31,25 @@ Check an APK: `apksigner verify --print-certs huallet-android-<version>.apk`.
 Tag `v<version>-android`, create a release, attach the APK and its `.sha256`,
 and paste the changelog.
 
-## F-Droid
+## Our F-Droid repository
+
+https://chihuahua.wtf/fdroid/repo, served from the `fdroid/repo` folder of
+website_v3. After each Android release:
+
+```sh
+export JAVA_HOME=~/Android/jdk ANDROID_HOME=~/Android/Sdk PATH=~/.local/fdroidserver-venv/bin:$PATH
+npm run fdroid:repo -- ~/Projects/website_v3   # adds release/huallet-android-<version>.apk, re-signs the index
+cd ~/Projects/website_v3 && git add fdroid && git commit -m "F-Droid repo: Huallet <version>" && git push
+```
+
+- fdroidserver: `python3 -m venv ~/.local/fdroidserver-venv && ~/.local/fdroidserver-venv/bin/pip install fdroidserver`.
+- Repository signing key and `config.yml`: `~/.huallet-fdroid` (mode 700, outside the repo).
+  Key fingerprint (SHA-256): `284E1A73DDA517FC7406F780B612CB5D22F2768A60FEDEB054FDD4BF243D7695`.
+  **Back it up offline**: losing it means every user has to remove and re-add the repository.
+- Listing texts and screenshots come from `fastlane/metadata/`, the app fields from `store/fdroid/repo-metadata.yml`.
+- Obtainium reads the latest GitHub release: every release marked *latest* must include the APK.
+
+## F-Droid (main catalogue)
 
 `store/fdroid/wtf.chihuahua.huallet.yml` is the draft metadata for
 fdroiddata. F-Droid builds from the tag; if its build matches ours byte for byte it
