@@ -43,6 +43,6 @@ Both stores need this URL. Keep it in sync with `PRIVACY.md`.
 
 ## 5. After approval
 
-- Put the store links in the web app: `installUrl` of `huallet` in `src/lib/wallet/extension.ts`, then rebuild and deploy the web app.
+- Store links live in `src/lib/wallet/extension.ts` (`HUALLET_CHROME_URL`, `HUALLET_FIREFOX_URL`) and in `README.md`.
 - Keep `GECKO_ID` in `scripts/build-extension.mjs` unchanged forever.
 - Updates: bump the version, rebuild, upload the new zips (and the new source zip for Firefox).

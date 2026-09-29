@@ -6,7 +6,13 @@
 
 <p align="center">
   <b>The self-custodial wallet of Chihuahua Chain.</b><br />
-  Hold, send, stake, swap and vote on HUAHUA and the whole Cosmos ecosystem — from a browser extension that keeps your keys on your device.
+  Hold, send, stake, swap and vote on HUAHUA and the whole Cosmos ecosystem — from a browser extension or an Android app that keeps your keys on your device.
+</p>
+
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/huallet/fjknmpfabobcbpmcklpoefjpdpmpnhmo"><b>Chrome Web Store</b></a> ·
+  <a href="https://addons.mozilla.org/firefox/addon/huallet/"><b>Firefox Add-ons</b></a> ·
+  <a href="https://github.com/ChihuahuaChain/huallet/releases/latest"><b>Android APK</b></a>
 </p>
 
 <p align="center">
@@ -21,6 +27,7 @@
 | | |
 |---|---|
 | **Huallet extension** (Chrome, Brave, Edge, Firefox · Manifest V3) | The wallet: creates or imports accounts, keeps keys encrypted on the device, signs from its popup, supports Ledger and lets dApps connect through `window.huallet`. |
+| **Huallet for Android** | The same wallet core running inside the app: biometric unlock with the Android Keystore, QR scanning, NFC tap-to-pay payment requests. No Google Play Services. |
 | **Huallet web app** | A dashboard that never holds keys: it connects to the Huallet extension (or Keplr / Leap) and every signature is approved in the wallet. |
 
 ## Features
@@ -68,7 +75,22 @@ Huallet has **not been independently audited yet**. Report vulnerabilities priva
 
 ## Install
 
-**From the stores** — Chrome Web Store and Firefox Add-ons listings are in review.
+**Browser extension**
+
+- Chrome, Brave, Edge: [Chrome Web Store](https://chromewebstore.google.com/detail/huallet/fjknmpfabobcbpmcklpoefjpdpmpnhmo)
+- Firefox: [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/huallet/)
+
+**Android**
+
+Download `huallet-android-<version>.apk` from the [latest release](https://github.com/ChihuahuaChain/huallet/releases/latest) and check it:
+
+```bash
+sha256sum -c huallet-android-<version>.apk.sha256
+apksigner verify --print-certs huallet-android-<version>.apk
+# certificate SHA-256: a16c15eaf77573342454c9a75b02a21a16bca917e4db44db2d57eaf2fc881a70
+```
+
+Updates are signed with the same key; an APK signed with any other certificate is not ours.
 
 **From source** (Node.js 22):
 
@@ -79,6 +101,7 @@ npm run build:ext
 
 - **Chrome / Brave / Edge**: open `chrome://extensions`, enable *Developer mode*, click *Load unpacked* and select `dist-extension/chrome`.
 - **Firefox ≥ 140**: open `about:debugging#/runtime/this-firefox`, *Load Temporary Add-on*, select `dist-extension/firefox/manifest.json`.
+- **Android** (JDK 21, Android SDK): `npm run build:mobile && cd android && ./gradlew assembleDebug`; release builds: [store/ANDROID_RELEASE.md](store/ANDROID_RELEASE.md).
 
 Ledger needs WebHID, available in Chromium-based browsers only.
 
@@ -132,7 +155,9 @@ src/
   state/ hooks/   zustand stores and react-query hooks
   components/     UI kit, layout, transaction review dialog
   pages/          screens shared by the web app and the extension
-  extension/      background service worker, content scripts, popup, Ledger, onboarding
+  extension/      background service worker (wallet core), content scripts, popup, Ledger, onboarding
+  mobile/         Android app shell: runs the wallet core in-process, native plugins
+android/          Capacitor Android project (biometrics, NFC, secure window)
 scripts/          extension build, source packaging, third-party notices
 e2e/              Puppeteer end-to-end tests
 store/            store listings, graphics and release checklist
@@ -140,7 +165,7 @@ store/            store listings, graphics and release checklist
 
 Maintainer notes:
 - `@scure/base` is pinned to `2.2.0` through `overrides`: newer versions reject the `limit = Infinity` that `@cosmjs/encoding@0.39` passes to `fromBech32`. Remove the override once CosmJS is fixed and re-run the tests.
-- Releasing to the stores: see [store/RELEASE.md](store/RELEASE.md).
+- Releasing to the stores: see [store/RELEASE.md](store/RELEASE.md) and [store/ANDROID_RELEASE.md](store/ANDROID_RELEASE.md).
 
 ## License
 

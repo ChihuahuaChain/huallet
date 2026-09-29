@@ -5,8 +5,13 @@ import { stakeCurrencyOf } from "../chains/types";
 
 export type WalletKind = "huallet" | "keplr" | "leap";
 
+export const HUALLET_CHROME_URL = "https://chromewebstore.google.com/detail/huallet/fjknmpfabobcbpmcklpoefjpdpmpnhmo";
+export const HUALLET_FIREFOX_URL = "https://addons.mozilla.org/firefox/addon/huallet/";
+
+const isFirefox = typeof navigator !== "undefined" && /firefox/i.test(navigator.userAgent);
+
 export const WALLETS: Record<WalletKind, { name: string; installUrl: string; keystoreEvent: string }> = {
-  huallet: { name: "Huallet", installUrl: "", keystoreEvent: "huallet_keystorechange" },
+  huallet: { name: "Huallet", installUrl: isFirefox ? HUALLET_FIREFOX_URL : HUALLET_CHROME_URL, keystoreEvent: "huallet_keystorechange" },
   keplr: { name: "Keplr", installUrl: "https://www.keplr.app/get", keystoreEvent: "keplr_keystorechange" },
   leap: { name: "Leap", installUrl: "https://www.leapwallet.io/download", keystoreEvent: "leap_keystorechange" },
 };
