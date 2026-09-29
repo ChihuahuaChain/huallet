@@ -17,7 +17,8 @@ AutoName: Huallet
 
 RepoType: git
 Repo: https://github.com/ChihuahuaChain/huallet.git
-Binaries: https://github.com/ChihuahuaChain/huallet/releases/download/v%v-android/huallet-android-%v.apk
+Binaries: 
+  https://github.com/ChihuahuaChain/huallet/releases/download/v%v-android/huallet-android-%v.apk
 
 Builds:
   - versionName: 1.1.0
