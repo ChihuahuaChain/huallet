@@ -222,6 +222,18 @@ try {
     await sleep(800);
   }
 
+  await page.evaluate((h) => (window.location.hash = h), "/swap");
+  await sleep(1200);
+  await click(page, "Osmosis");
+  await sleep(500);
+  await click(page, "Switch to Osmosis");
+  await waitText(page, "You pay", 30000);
+  await type(page, 'input[aria-label="You pay"]', "1");
+  await waitText(page, "Minimum received", 30000);
+  const [osw, ocw] = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
+  if (osw > ocw) throw new Error(`Osmosis swap scrolls sideways: ${osw}px content in ${ocw}px`);
+  log("Osmosis swap quotes:", (await text(page)).match(/1 OSMO ≈ [^\n]+/)?.[0]);
+
   if (errors.length) throw new Error("Page errors: " + errors.join(" | "));
   console.log("ANDROID E2E OK");
 } finally {
