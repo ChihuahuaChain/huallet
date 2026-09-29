@@ -5,6 +5,9 @@ import { LedgerSigner } from "@cosmjs/ledger-amino";
 import type Transport from "@ledgerhq/hw-transport";
 import TransportWebHID from "@ledgerhq/hw-transport-webhid";
 import { hdPathFor, LEDGER_COIN_TYPE } from "@/lib/keyring/keyring";
+import { ledgerNativeApi, type LedgerDevice, type LedgerNative } from "@/lib/native";
+import { chooseLedgerDevice, PickerCancelled } from "./DevicePicker";
+import { NativeLedgerTransport } from "./nativeTransport";
 
 export class LedgerError extends Error {
   constructor(
@@ -17,7 +20,61 @@ export class LedgerError extends Error {
 }
 
 export function isLedgerSupported(): boolean {
-  return typeof navigator !== "undefined" && "hid" in navigator;
+  return !!ledgerNativeApi() || (typeof navigator !== "undefined" && "hid" in navigator);
+}
+
+/** The Android app talks to the Ledger over USB (OTG cable) or Bluetooth instead of WebHID. */
+export const isNativeLedger = () => !!ledgerNativeApi();
+
+const SAVED_DEVICE = "huallet:ledger-device";
+
+function savedDevice(): LedgerDevice | null {
+  try {
+    const v = localStorage.getItem(SAVED_DEVICE);
+    return v ? (JSON.parse(v) as LedgerDevice) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveDevice(d: LedgerDevice) {
+  try {
+    localStorage.setItem(SAVED_DEVICE, JSON.stringify(d));
+  } catch {
+    /* only a convenience */
+  }
+}
+
+/** Reconnects to the last Ledger used; asks the user to pick one when it isn't reachable. */
+async function openNativeTransport(native: LedgerNative): Promise<Transport> {
+  const last = savedDevice();
+  let reason = "";
+  if (last) {
+    try {
+      return await NativeLedgerTransport.connect(native, last.id);
+    } catch (e) {
+      reason = (e as Error)?.message ?? "";
+    }
+  }
+  for (;;) {
+    let picked: LedgerDevice;
+    try {
+      picked = await chooseLedgerDevice(reason);
+    } catch (e) {
+      if (e instanceof PickerCancelled) throw new LedgerError("no-device", "No Ledger selected.");
+      throw e;
+    }
+    try {
+      const t = await NativeLedgerTransport.connect(native, picked.id);
+      saveDevice(t.device);
+      return t;
+    } catch (e) {
+      const err = toLedgerError(e);
+      if (err.code !== "unknown") throw err;
+      reason = err.message;
+      await native.close().catch(() => {});
+    }
+  }
 }
 
 const LEDGER_VENDOR_ID = 0x2c97;
@@ -50,12 +107,13 @@ let queue: Promise<unknown> = Promise.resolve();
 async function withTransport<T>(fn: (t: Transport) => Promise<T>, opts: { allowChooser: boolean }): Promise<T> {
   const run = async () => {
     if (!isLedgerSupported()) throw new LedgerError("unsupported", "Ledger needs a Chromium-based browser (Chrome, Brave, Edge).");
-    if (!opts.allowChooser && !(await hasPairedLedger())) {
+    if (!isNativeLedger() && !opts.allowChooser && !(await hasPairedLedger())) {
       throw new LedgerError("needs-full-view", "Connect your Ledger from Huallet's full view first (menu → Open in full view).");
     }
     let transport: Transport | undefined;
     try {
-      transport = await TransportWebHID.create();
+      const native = ledgerNativeApi();
+      transport = native ? await openNativeTransport(native) : await TransportWebHID.create();
       return await fn(transport);
     } catch (e) {
       throw toLedgerError(e);

@@ -7,7 +7,7 @@ import { Alert, Button, Field, Input } from "@/components/ui";
 import { useT } from "@/i18n";
 import { extApi } from "@/lib/kv";
 import type { NewKey } from "@/lib/keyring/keyring";
-import { isLedgerSupported, readLedgerPubkey, showAddressOnLedger } from "../ledger/ledger";
+import { isLedgerSupported, isNativeLedger, readLedgerPubkey, showAddressOnLedger } from "../ledger/ledger";
 import { isPopupView } from "../popup/view";
 
 export function LedgerConnect({ onNext, onBack }: { onNext: (k: Omit<NewKey, "name">) => void; onBack?: () => void }) {
@@ -96,7 +96,7 @@ export function LedgerConnect({ onNext, onBack }: { onNext: (k: Omit<NewKey, "na
       </div>
 
       <ol className="space-y-2 text-sm">
-        {(["ledger.step1", "ledger.step2", "ledger.step3"] as const).map((k, i) => (
+        {(isNativeLedger() ? (["ledger.mobile.step1", "ledger.step2", "ledger.mobile.step3"] as const) : (["ledger.step1", "ledger.step2", "ledger.step3"] as const)).map((k, i) => (
           <li key={k} className="flex gap-3">
             <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-huahua-300 text-xs font-bold text-ink">{i + 1}</span>
             <span className="pt-0.5">{t(k)}</span>
