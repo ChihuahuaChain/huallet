@@ -60,6 +60,13 @@ function describe(tx: TxResponse, me: string): Row {
       return { kind: "receive", count };
     case "/liquidity.v1beta1.MsgDirectSwap":
       return { kind: "swap", coin: coin0(m.offer_coin), count };
+    case "/osmosis.poolmanager.v1beta1.MsgSwapExactAmountIn":
+      return { kind: "swap", coin: coin0(m.token_in), count };
+    case "/osmosis.poolmanager.v1beta1.MsgSplitRouteSwapExactAmountIn": {
+      const routes = (m.routes as Array<{ token_in_amount: string }> | undefined) ?? [];
+      const amount = routes.reduce((sum, r) => sum + BigInt(r.token_in_amount || "0"), 0n);
+      return { kind: "swap", coin: { denom: String(m.token_in_denom), amount: amount.toString() }, count };
+    }
     case "/cosmwasm.wasm.v1.MsgExecuteContract": {
       const inner = m.msg as Record<string, unknown> | undefined;
       if (inner && "buy" in inner) return { kind: "curve-buy", coin: coin0(m.funds), counterparty: String(m.contract), count };

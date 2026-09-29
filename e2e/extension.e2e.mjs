@@ -76,6 +76,26 @@ try {
   if (/Something went wrong|Unexpected Application Error/.test(ibcText)) throw new Error("IBC crashed after choosing a destination");
   if (pageErrors.length) throw new Error("Page errors: " + pageErrors.join(" | "));
   log(`all ${routes.length} routes render; IBC with destination → recipient prefilled:`, /osmo1[0-9a-z]{38}/.test(await popup.evaluate(() => [...document.querySelectorAll("input")].map((i) => i.value).join(" "))));
+  await popup.evaluate(() => { window.location.hash = "/swap"; });
+  await sleep(1000);
+  const clickText = (re) => popup.evaluate((src) => {
+    const el = [...document.querySelectorAll("button")].find((b) => new RegExp(src).test(b.innerText.trim()));
+    if (!el) throw new Error("no button " + src);
+    el.click();
+  }, re.source);
+  await clickText(/^Osmosis$/);
+  await sleep(500);
+  await clickText(/^Switch to Osmosis$/);
+  await popup.waitForFunction(() => document.body.innerText.includes("You pay"), { timeout: 20000, polling: 500 });
+  await popup.type('input[aria-label="You pay"]', "1");
+  await popup.waitForFunction(() => document.body.innerText.includes("Minimum received"), { timeout: 20000, polling: 500 }).catch(async (e) => {
+    await popup.screenshot({ path: join(OUT, "04-osmosis-swap-failed.png") });
+    throw new Error(`Osmosis quote not shown: ${(await popup.evaluate(() => document.body.innerText)).slice(0, 600)}`, { cause: e });
+  });
+  await popup.screenshot({ path: join(OUT, "04-osmosis-swap.png") });
+  const osmoText = await popup.evaluate(() => document.body.innerText);
+  const osmoRoute = osmoText.split("\n").find((l) => l.includes("→")) ?? "";
+  log("osmosis swap quote:", osmoText.match(/Rate\n?([^\n]+)/)?.[1] ?? "?", "| route", osmoRoute);
   await popup.close();
 
   const dapp = await browser.newPage();

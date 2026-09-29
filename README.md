@@ -37,6 +37,7 @@
 - **Portfolio** — balances across chains in fiat: available, staked, rewards and unbonding; native, IBC, tokenfactory and CW20 tokens.
 - **Staking** — multi-chain overview with APR; validator list with voting power and commission; stake, unstake, redelegate, claim one or all.
 - **Swap on HuahuaSwap** — Chihuahua's native DEX (`x/liquidity`): quotes computed exactly like the chain, price impact, slippage limit, multi-hop through HUAHUA in one atomic transaction; **Launchpad** buy/sell on bonding curves.
+- **Swap on Osmosis** — any verified Osmosis asset, best route (including split routes) from the Osmosis router, signed as a single pool-manager transaction with your minimum received; Ledger compatible.
 - **IBC transfers** — channels from the Cosmos chain registry, verified on-chain before sending.
 - **Governance** — proposals, live tally, vote.
 - **Any Cosmos chain** — Chihuahua, Cosmos Hub, Osmosis, Juno and Celestia built in; add others from the chain registry, a ChainInfo JSON or a form.

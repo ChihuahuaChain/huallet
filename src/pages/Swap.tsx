@@ -10,14 +10,16 @@ import { useLocale, useT } from "@/i18n";
 import type { ResolvedAsset } from "@/lib/assets";
 import { CHIHUAHUA_CHAIN_ID } from "@/lib/chains/builtin";
 import type { ChainInfo } from "@/lib/chains/types";
+import { OSMOSIS_CHAIN_ID } from "@/lib/dex/osmosis";
 import { curveBuyMsg, curveSellMsg, HUAHUA, routeSwap, swapMsgs, type LaunchpadToken } from "@/lib/dex/huahuaswap";
 import { formatAmount, formatPercent, fromBaseUnits, shortAddress, toBaseUnits } from "@/lib/format";
 import { useAllChains, useChainsStore, useSelectedChain } from "@/state/chains";
 import { feeReserveFor } from "./Send";
+import { OsmosisSwapPanel } from "./SwapOsmosis";
 
-const SLIPPAGE_PRESETS = [50, 100, 300];
+export const SLIPPAGE_PRESETS = [50, 100, 300];
 
-function parseAmount(v: string, decimals: number): { value: bigint | null; error: boolean } {
+export function parseAmount(v: string, decimals: number): { value: bigint | null; error: boolean } {
   if (!v) return { value: null, error: false };
   try {
     return { value: toBaseUnits(v, decimals), error: false };
@@ -26,7 +28,7 @@ function parseAmount(v: string, decimals: number): { value: bigint | null; error
   }
 }
 
-function TokenButton({ asset, onClick }: { asset?: ResolvedAsset; onClick: () => void }) {
+export function TokenButton({ asset, onClick }: { asset?: ResolvedAsset; onClick: () => void }) {
   return (
     <button type="button" onClick={onClick} className="flex shrink-0 items-center gap-2 rounded-full border border-line bg-surface py-1.5 pl-1.5 pr-3 font-semibold hover:bg-surface-2">
       {asset ? <TokenIcon src={asset.coinImageUrl} symbol={asset.coinDenom} size={28} /> : <div className="size-7 rounded-full bg-surface-2" />}
@@ -36,13 +38,15 @@ function TokenButton({ asset, onClick }: { asset?: ResolvedAsset; onClick: () =>
   );
 }
 
-function TokenPicker({
+export function TokenPicker({
   open,
   onClose,
   denoms,
   assets,
   balances,
   onPick,
+  pinned = HUAHUA,
+  pinnedLabel = "Chihuahua",
 }: {
   open: boolean;
   onClose: () => void;
@@ -50,6 +54,8 @@ function TokenPicker({
   assets: Record<string, ResolvedAsset>;
   balances: Record<string, bigint>;
   onPick: (d: string) => void;
+  pinned?: string;
+  pinnedLabel?: string;
 }) {
   const t = useT();
   const [q, setQ] = useState("");
@@ -59,7 +65,7 @@ function TokenPicker({
       const s = q.trim().toLowerCase();
       return !s || a?.coinDenom.toLowerCase().includes(s) || d.toLowerCase().includes(s);
     })
-    .sort((a, b) => (a === HUAHUA ? -1 : b === HUAHUA ? 1 : Number((balances[b] ?? 0n) - (balances[a] ?? 0n))));
+    .sort((a, b) => (a === pinned ? -1 : b === pinned ? 1 : Number((balances[b] ?? 0n) - (balances[a] ?? 0n))));
   return (
     <Modal open={open} onClose={onClose} title={t("swap.selectToken")} size="sm">
       <Input autoFocus placeholder={t("common.search")} value={q} onChange={(e) => setQ(e.target.value)} right={<Search className="mr-2 size-4 text-muted" />} />
@@ -78,7 +84,7 @@ function TokenPicker({
               <TokenIcon src={a?.coinImageUrl} symbol={a?.coinDenom ?? "?"} size={32} />
               <div className="min-w-0 flex-1">
                 <div className="font-semibold">{a?.coinDenom ?? shortAddress(d, 10, 4)}</div>
-                <div className="truncate font-mono text-[11px] text-muted">{d === HUAHUA ? "Chihuahua" : shortAddress(d, 16, 8)}</div>
+                <div className="truncate font-mono text-[11px] text-muted">{d === pinned ? pinnedLabel : shortAddress(d, 16, 8)}</div>
               </div>
               {!!balances[d] && a && <Amount amount={balances[d]} decimals={a.coinDecimals} className="text-sm" />}
             </button>
@@ -89,30 +95,90 @@ function TokenPicker({
   );
 }
 
+export function SlippageControl({ value: slippageBps, onChange: setSlippageBps }: { value: number; onChange: (bps: number) => void }) {
+  const t = useT();
+  const locale = useLocale();
+  const [showSettings, setShowSettings] = useState(false);
+  return (
+    <>
+      <div className="flex justify-end">
+        <button type="button" onClick={() => setShowSettings((s) => !s)} className="flex items-center gap-1.5 text-xs font-medium text-muted hover:text-fg">
+          <Settings2 className="size-4" /> {t("swap.slippage")}: {formatPercent(slippageBps / 10_000, locale, 2)}
+        </button>
+      </div>
+      {showSettings && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl bg-surface-2 p-3 text-sm">
+          <span className="text-muted">{t("swap.slippageTolerance")}</span>
+          {SLIPPAGE_PRESETS.map((b) => (
+            <button key={b} type="button" onClick={() => setSlippageBps(b)} className={cx("rounded-lg px-2.5 py-1 font-medium", slippageBps === b ? "bg-accent text-accent-fg" : "bg-surface hover:bg-line")}>
+              {formatPercent(b / 10_000, locale, 1)}
+            </button>
+          ))}
+          <Input
+            className="h-8 w-20"
+            inputMode="decimal"
+            placeholder="%"
+            onChange={(e) => {
+              const v = Number(e.target.value.replace(",", "."));
+              if (v > 0 && v <= 50) setSlippageBps(Math.round(v * 100));
+            }}
+            aria-label={t("swap.slippageTolerance")}
+          />
+        </div>
+      )}
+    </>
+  );
+}
+
 export function SwapPage() {
   const t = useT();
   const chain = useSelectedChain();
-  const chihuahua = useAllChains().find((c) => c.chainId === CHIHUAHUA_CHAIN_ID);
+  const all = useAllChains();
+  const chihuahua = all.find((c) => c.chainId === CHIHUAHUA_CHAIN_ID);
+  const osmosis = all.find((c) => c.chainId === OSMOSIS_CHAIN_ID);
   const selectChain = useChainsStore((s) => s.selectChain);
-  const [tab, setTab] = useState<"swap" | "launchpad">("swap");
+  const setEnabled = useChainsStore((s) => s.setEnabled);
+  const [tab, setTab] = useState<"swap" | "launchpad" | "osmosis">(chain.chainId === OSMOSIS_CHAIN_ID ? "osmosis" : "swap");
+  const switchTo = (chainId: string) => {
+    setEnabled(chainId, true);
+    selectChain(chainId);
+  };
 
-  if (chain.chainId !== CHIHUAHUA_CHAIN_ID || !chihuahua) {
-    return (
-      <div className="mx-auto max-w-xl">
-        <PageHeader title={t("swap.title")} subtitle={t("swap.subtitle")} />
-        <Card>
-          <EmptyState icon={<Rocket className="size-8" />} title={t("swap.onlyChihuahua")} action={<Button onClick={() => selectChain(CHIHUAHUA_CHAIN_ID)}>{t("swap.switchChain")}</Button>}>
-            {t("swap.onlyChihuahuaBody")}
-          </EmptyState>
-        </Card>
-      </div>
-    );
-  }
+  const needed = tab === "osmosis" ? osmosis : chihuahua;
+  const tabs = (
+    <Tabs
+      value={tab}
+      onChange={setTab}
+      items={[
+        { value: "swap", label: t("swap.tab.swap") },
+        { value: "launchpad", label: t("swap.tab.launchpad") },
+        ...(osmosis ? [{ value: "osmosis" as const, label: t("swap.tab.osmosis") }] : []),
+      ]}
+    />
+  );
 
   return (
     <div className="mx-auto max-w-xl">
-      <PageHeader title={t("swap.title")} subtitle={t("swap.subtitle")} action={<Tabs value={tab} onChange={setTab} items={[{ value: "swap", label: t("swap.tab.swap") }, { value: "launchpad", label: t("swap.tab.launchpad") }]} />} />
-      {tab === "swap" ? <SwapPanel chain={chain} /> : <LaunchpadPanel chain={chain} />}
+      <PageHeader title={t("swap.title")} subtitle={t(tab === "osmosis" ? "swap.osmosis.subtitle" : "swap.subtitle")} action={tabs} />
+      {!needed || chain.chainId !== needed.chainId ? (
+        <Card>
+          {tab === "osmosis" ? (
+            <EmptyState icon={<Rocket className="size-8" />} title={t("swap.osmosis.only")} action={osmosis && <Button onClick={() => switchTo(OSMOSIS_CHAIN_ID)}>{t("swap.osmosis.switch")}</Button>}>
+              {t("swap.osmosis.onlyBody")}
+            </EmptyState>
+          ) : (
+            <EmptyState icon={<Rocket className="size-8" />} title={t("swap.onlyChihuahua")} action={chihuahua && <Button onClick={() => switchTo(CHIHUAHUA_CHAIN_ID)}>{t("swap.switchChain")}</Button>}>
+              {t("swap.onlyChihuahuaBody")}
+            </EmptyState>
+          )}
+        </Card>
+      ) : tab === "osmosis" ? (
+        <OsmosisSwapPanel chain={chain} />
+      ) : tab === "swap" ? (
+        <SwapPanel chain={chain} />
+      ) : (
+        <LaunchpadPanel chain={chain} />
+      )}
     </div>
   );
 }
@@ -132,7 +198,6 @@ function SwapPanel({ chain }: { chain: ChainInfo }) {
   const [to, setTo] = useState("");
   const [amount, setAmount] = useState("");
   const [slippageBps, setSlippageBps] = useState(100);
-  const [showSettings, setShowSettings] = useState(false);
   const [picker, setPicker] = useState<"from" | "to" | null>(null);
 
   const liquidity = useMemo(() => {
@@ -191,31 +256,7 @@ function SwapPanel({ chain }: { chain: ChainInfo }) {
   return (
     <Card className="p-5 sm:p-6">
       <form onSubmit={submit} className="space-y-3">
-        <div className="flex justify-end">
-          <button type="button" onClick={() => setShowSettings((s) => !s)} className="flex items-center gap-1.5 text-xs font-medium text-muted hover:text-fg">
-            <Settings2 className="size-4" /> {t("swap.slippage")}: {formatPercent(slippageBps / 10_000, locale, 2)}
-          </button>
-        </div>
-        {showSettings && (
-          <div className="flex flex-wrap items-center gap-2 rounded-xl bg-surface-2 p-3 text-sm">
-            <span className="text-muted">{t("swap.slippageTolerance")}</span>
-            {SLIPPAGE_PRESETS.map((b) => (
-              <button key={b} type="button" onClick={() => setSlippageBps(b)} className={cx("rounded-lg px-2.5 py-1 font-medium", slippageBps === b ? "bg-accent text-accent-fg" : "bg-surface hover:bg-line")}>
-                {formatPercent(b / 10_000, locale, 1)}
-              </button>
-            ))}
-            <Input
-              className="h-8 w-20"
-              inputMode="decimal"
-              placeholder="%"
-              onChange={(e) => {
-                const v = Number(e.target.value.replace(",", "."));
-                if (v > 0 && v <= 50) setSlippageBps(Math.round(v * 100));
-              }}
-              aria-label={t("swap.slippageTolerance")}
-            />
-          </div>
-        )}
+        <SlippageControl value={slippageBps} onChange={setSlippageBps} />
 
         <div className="rounded-2xl border border-line bg-surface-2/50 p-4">
           <div className="flex items-center justify-between text-xs text-muted">
