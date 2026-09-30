@@ -1,0 +1,2 @@
+- Swap on Osmosis: any verified Osmosis asset, best route from the Osmosis router, one transaction with a minimum received
+- Smaller, optimized app (R8)
