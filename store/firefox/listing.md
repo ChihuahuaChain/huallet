@@ -12,7 +12,7 @@ Submit at https://addons.mozilla.org/developers/addon/submit/ → "On this site"
 **Name:** Huallet
 **Add-on URL (slug):** huallet
 **Summary** (max 250 chars):
-The official Chihuahua Chain wallet. Self-custodial wallet for HUAHUA and the Cosmos ecosystem: stake, swap on HuahuaSwap, vote, send and bridge with IBC, and connect to Cosmos dApps. Keys stay encrypted on your device.
+The official Chihuahua Chain wallet. Self-custodial wallet for HUAHUA and the Cosmos ecosystem: stake, swap on HuahuaSwap and Osmosis, vote, send and bridge with IBC, and connect to Cosmos dApps. Keys stay encrypted on your device.
 
 **Description:** use the Chrome description (`store/chrome/listing.md`) and add at the end:
 "Note: Ledger hardware wallets need WebHID, which Firefox does not support yet. Use a Chromium-based browser for Ledger accounts."

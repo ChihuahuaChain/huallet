@@ -30,8 +30,9 @@ STAKE AND EARN
 • Claim rewards from one validator or all at once
 • Validator list with voting power and commission, plus decentralization hints
 
-SWAP ON HUAHUASWAP
+SWAP ON HUAHUASWAP AND OSMOSIS
 • Trade HUAHUA and Chihuahua tokens on the native DEX, right from the wallet
+• Swap any verified Osmosis asset with the best route from the Osmosis router
 • Clear quotes, price impact and slippage protection
 • Buy and sell new tokens on the HuahuaSwap Launchpad
 
