@@ -21,9 +21,9 @@ Binaries:
   https://github.com/ChihuahuaChain/huallet/releases/download/v%v-android/huallet-android-%v.apk
 
 Builds:
-  - versionName: 1.1.1
-    versionCode: 10101
-    commit: 8708b7cf7ad2887b5de19569cb94482d9bd0bfb4
+  - versionName: 1.1.2
+    versionCode: 10102
+    commit: 285a70cb6f4c0b38be993641c48a5a86368dc1e9
     subdir: android/app
     sudo:
       - echo "deb http://deb.debian.org/debian forky main" > /etc/apt/sources.list.d/forky.list
@@ -45,5 +45,5 @@ AllowedAPKSigningKeys: a16c15eaf77573342454c9a75b02a21a16bca917e4db44db2d57eaf2f
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v.*-android$
-CurrentVersion: 1.1.1
-CurrentVersionCode: 10101
+CurrentVersion: 1.1.2
+CurrentVersionCode: 10102
