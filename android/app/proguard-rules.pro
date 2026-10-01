@@ -19,3 +19,9 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# R8 otherwise drops PluginHandle.pluginAnnotation: getPluginAnnotation() then returns null and
+# plugins lose the permissions declared in @CapacitorPlugin, so requestPermissionForAlias()
+# asks for nothing and its call never settles (Ledger search hung on "Looking for Ledger devices…").
+-keep class com.getcapacitor.PluginHandle { *; }
+-keep @interface com.getcapacitor.annotation.** { *; }
