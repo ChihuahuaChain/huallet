@@ -1,0 +1,1 @@
+- Ledger hardware wallets: connect a Nano X, Stax or Flex over Bluetooth, or any Ledger over a USB (OTG) cable, and sign with the Cosmos app
