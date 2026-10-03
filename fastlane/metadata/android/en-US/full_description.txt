@@ -29,4 +29,11 @@ Huallet is the self-custodial wallet of Chihuahua Chain. Hold, send, stake, swap
 
 Every transaction is shown in full before you sign. No analytics, no ads, no trackers.
 
-Huallet talks to public Cosmos RPC/REST endpoints and, if you enable fiat prices, to CoinGecko (only token IDs are sent, never your address).
+Network connections:
+<ul>
+<li>Public Cosmos RPC/REST endpoints of your chains</li>
+<li>CoinGecko for fiat prices: on by default, can be turned off in Settings. Only token IDs are sent, never your address</li>
+<li>raw.githubusercontent.com for Cosmos chain registry data (asset lists, the chains you add, IBC channels) and token icons; chains.cosmos.directory for the list of chains you can add</li>
+<li>sqs.osmosis.zone for Osmosis swap quotes and raw.githubusercontent.com for the Osmosis asset list, only on the Osmosis swap tab</li>
+</ul>
+The icons of the built-in tokens are bundled in the app.
