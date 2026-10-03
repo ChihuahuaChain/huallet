@@ -8,12 +8,11 @@ import { useEnabledChains, useSelectedChain } from "@/state/chains";
 import { connectWallet } from "@/lib/wallet/connect";
 import { useWallet } from "@/state/wallet";
 
-const ORDER: WalletKind[] = ["huallet", "keplr", "leap"];
+const ORDER: WalletKind[] = ["huallet", "keplr"];
 
 const BADGE: Record<WalletKind, string> = {
   huallet: "bg-huahua-300 text-ink",
   keplr: "bg-[#2E5BFF] text-white",
-  leap: "bg-[#32DA6D] text-ink",
 };
 
 export function Connect() {
@@ -22,11 +21,11 @@ export function Connect() {
   const primary = useSelectedChain();
   const { status, error } = useWallet();
   const [pending, setPending] = useState<WalletKind | null>(null);
-  const [installed, setInstalled] = useState<Record<WalletKind, boolean>>({ huallet: false, keplr: false, leap: false });
+  const [installed, setInstalled] = useState<Record<WalletKind, boolean>>({ huallet: false, keplr: false });
   const [localError, setLocalError] = useState("");
 
   useEffect(() => {
-    const check = () => setInstalled({ huallet: isInstalled("huallet"), keplr: isInstalled("keplr"), leap: isInstalled("leap") });
+    const check = () => setInstalled({ huallet: isInstalled("huallet"), keplr: isInstalled("keplr") });
     check();
     const timers = [300, 1000, 2500].map((ms) => setTimeout(check, ms));
     return () => timers.forEach(clearTimeout);
