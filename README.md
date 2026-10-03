@@ -70,7 +70,7 @@ Huallet is built so that a compromised website can't take your funds, and so tha
 **Code and data**
 - Manifest V3 CSP `script-src 'self'`: no remote code, no `eval` in application code, no analytics, no trackers.
 - Untrusted data is validated: chain configs (https only), bech32 addresses (wrong-chain detection), IBC channels (verified on-chain), proposal text (rendered as plain text), unverified tokens flagged, memos that look like secrets blocked.
-- Price data (CoinGecko, optional) receives token identifiers only, never your address. See [PRIVACY.md](PRIVACY.md).
+- Price data (CoinGecko, on by default, can be turned off) receives token identifiers only, never your address. See [PRIVACY.md](PRIVACY.md).
 - **Reproducible builds**: building the tagged source produces byte-identical extension packages.
 
 Huallet has **not been independently audited yet**. Report vulnerabilities privately — see [SECURITY.md](SECURITY.md).

@@ -12,6 +12,7 @@ import {
 import { createPortal } from "react-dom";
 import { Check, Copy, Eye, EyeOff, Loader2, X } from "lucide-react";
 import { useT } from "@/i18n";
+import { localIconUrl } from "@/lib/chains/icons";
 
 export function cx(...parts: Array<string | false | null | undefined>): string {
   return parts.filter(Boolean).join(" ");
@@ -366,7 +367,7 @@ export function TokenIcon({ src, symbol, size = 36, className }: { src?: string;
   }
   return (
     <img
-      src={src}
+      src={localIconUrl(src)}
       alt=""
       width={size}
       height={size}

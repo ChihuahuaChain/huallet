@@ -1,6 +1,6 @@
 import { bech32ConfigFromPrefix, type ChainInfo } from "./types";
 
-const REGISTRY_IMG = "https://raw.githubusercontent.com/cosmos/chain-registry/master";
+export const REGISTRY_IMG = "https://raw.githubusercontent.com/cosmos/chain-registry/master";
 
 const huahua = {
   coinDenom: "HUAHUA",
