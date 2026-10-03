@@ -29,7 +29,7 @@
 |---|---|
 | **Huallet extension** (Chrome, Brave, Edge, Firefox · Manifest V3) | The wallet: creates or imports accounts, keeps keys encrypted on the device, signs from its popup, supports Ledger and lets dApps connect through `window.huallet`. |
 | **Huallet for Android** | The same wallet core running inside the app: biometric unlock with the Android Keystore, QR scanning, NFC tap-to-pay payment requests, Ledger over USB (OTG) or Bluetooth. No Google Play Services. |
-| **Huallet web app** | A dashboard that never holds keys: it connects to the Huallet extension (or Keplr / Leap) and every signature is approved in the wallet. |
+| **Huallet web app** | A dashboard that never holds keys: it connects to the Huallet extension (or Keplr) and every signature is approved in the wallet. |
 
 ## Features
 
