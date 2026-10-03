@@ -1,0 +1,3 @@
+- The icons of the built-in tokens (HUAHUA, ATOM, OSMO, JUNO, TIA) are bundled in the app: no network request to show them
+- Description lists every network connection the app makes; fiat prices from CoinGecko are on by default and can be turned off in Settings
+- Removed the unused Google Services build plugin
