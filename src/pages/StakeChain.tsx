@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowLeft, ArrowUpDown, Clock, ExternalLink, Search } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowUpDown, Clock, ExternalLink, Repeat, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { Amount, Fiat } from "@/components/Amount";
@@ -10,7 +10,9 @@ import {
   useApr,
   useBalanceOf,
   useDelegations,
+  useGrants,
   usePrices,
+  useRestakeOperators,
   useRewards,
   useStakingInfo,
   useUnbondings,
@@ -18,10 +20,13 @@ import {
 } from "@/hooks/queries";
 import { useLocale, useT } from "@/i18n";
 import { feeCurrencyOf, stakeCurrencyOf, type ChainInfo } from "@/lib/chains/types";
-import type { Validator } from "@/lib/cosmos/rest";
-import { computeFee, msg } from "@/lib/cosmos/tx";
+import type { RestakeOperator, Validator } from "@/lib/cosmos/rest";
+import { computeFee, msg, RESTAKE_GRANT_DURATION_SECONDS } from "@/lib/cosmos/tx";
 import { formatDateTime, formatPercent, fromBaseUnits, timeUntil, toBaseUnits, toNumber } from "@/lib/format";
 import { useAllChains } from "@/state/chains";
+import { useWallet } from "@/state/wallet";
+
+const STAKE_AUTHORIZATION_TYPE = "/cosmos.staking.v1beta1.StakeAuthorization";
 
 type Mode = "delegate" | "undelegate" | "redelegate";
 
@@ -60,11 +65,15 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
   const apr = useApr(chain);
   const available = useBalanceOf(chain, address, cur.coinMinimalDenom);
   const price = usePrices(cur.coinGeckoId ? [cur.coinGeckoId] : []).data?.[cur.coinGeckoId ?? ""];
+  const { isLedger } = useWallet();
+  const operators = useRestakeOperators(chain);
+  const grants = useGrants(chain, address);
 
   const [filter, setFilter] = useState<"active" | "inactive">("active");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<"power" | "commission" | "name">("power");
   const [action, setAction] = useState<{ mode: Mode; validator: Validator } | null>(null);
+  const [restake, setRestake] = useState<{ operator: RestakeOperator; valoper: string; active: boolean } | null>(null);
 
   const byAddr = useMemo(() => new Map((validators.data ?? []).map((v) => [v.operator_address, v])), [validators.data]);
   const bonded = useMemo(() => (validators.data ?? []).filter((v) => v.status === "BOND_STATUS_BONDED"), [validators.data]);
@@ -96,10 +105,34 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
       });
   }, [validators.data, filter, search, sort]);
 
+  const operatorByValoper = useMemo(() => new Map((operators.data ?? []).map((o) => [o.valoper, o])), [operators.data]);
+  const restakeActive = (valoper: string) => {
+    const op = operatorByValoper.get(valoper);
+    if (!op) return false;
+    return (grants.data ?? []).some(
+      (g) => g.grantee === op.botAddress && g.type === STAKE_AUTHORIZATION_TYPE && (!g.allowList || g.allowList.includes(valoper)),
+    );
+  };
+
+  // When fees are paid in the staking token, keep enough back to cover them: trim the re-staked
+  // amount only by the shortfall the current balance can't already cover, so a funded account
+  // re-stakes the full reward.
+  const sameFeeDenom = feeCurrencyOf(chain).coinMinimalDenom === cur.coinMinimalDenom;
+  const restakeShortfall = sameFeeDenom && available < feeReserve(chain) ? feeReserve(chain) - available : 0n;
+  const restakeAmountOf = (r: bigint) => (r > restakeShortfall ? r - restakeShortfall : 0n);
+
   const fiat = (x: bigint) => (price === undefined ? undefined : toNumber(x, cur.coinDecimals) * price);
   const claim = (vals: string[]) =>
     address &&
     requestTx({ chain, title: t("stake.claimTitle", { chain: chain.chainName }), msgs: vals.map((v) => msg.withdrawRewards(address, v)) });
+  const claimRestake = (vals: string[]) => {
+    if (!address) return;
+    const msgs = vals.flatMap((v) => {
+      const amt = restakeAmountOf(rewardOf(v));
+      return amt > 0n ? msg.claimAndRestake(address, v, cur.coinMinimalDenom, amt) : [];
+    });
+    if (msgs.length) requestTx({ chain, title: t("stake.claimRestakeTitle", { chain: chain.chainName }), msgs });
+  };
 
   return (
     <div className="space-y-6">
@@ -139,9 +172,14 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
               <Amount amount={totalRewards} decimals={cur.coinDecimals} symbol={cur.coinDenom} className="mt-1 block text-2xl font-semibold" />
               <Fiat value={fiat(totalRewards)} className="text-sm text-muted" />
             </div>
-            <Button size="sm" disabled={validatorsWithRewards.length === 0} onClick={() => claim(validatorsWithRewards)}>
-              {t("stake.claimAll")}
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button size="sm" disabled={validatorsWithRewards.length === 0} onClick={() => claim(validatorsWithRewards)}>
+                {t("stake.claimAll")}
+              </Button>
+              <Button size="sm" variant="secondary" disabled={validatorsWithRewards.length === 0} onClick={() => claimRestake(validatorsWithRewards)}>
+                {t("stake.claimRestakeAll")}
+              </Button>
+            </div>
           </div>
         </Card>
       </div>
@@ -154,28 +192,58 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
             <EmptyState title={t("stake.noDelegations")}>{t("stake.noDelegationsBody", { symbol: cur.coinDenom })}</EmptyState>
           )}
           {myDelegations.map((d) => {
-            const v = byAddr.get(d.delegation.validator_address);
-            const r = rewardOf(d.delegation.validator_address);
+            const valoper = d.delegation.validator_address;
+            const v = byAddr.get(valoper);
+            const r = rewardOf(valoper);
+            const op = operatorByValoper.get(valoper);
+            const active = restakeActive(valoper);
             return (
-              <div key={d.delegation.validator_address} className="flex flex-wrap items-center gap-3 px-3 py-3">
-                <Monogram text={v?.description.moniker ?? "?"} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 font-semibold">
-                    <span className="truncate">{v?.description.moniker ?? d.delegation.validator_address}</span>
-                    {v?.jailed && <Badge tone="danger">{t("stake.jailed")}</Badge>}
-                    {v && v.status !== "BOND_STATUS_BONDED" && !v.jailed && <Badge tone="warning">{t("stake.inactive")}</Badge>}
+              <div key={valoper} className="px-3 py-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <Monogram text={v?.description.moniker ?? "?"} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 font-semibold">
+                      <span className="truncate">{v?.description.moniker ?? valoper}</span>
+                      {v?.jailed && <Badge tone="danger">{t("stake.jailed")}</Badge>}
+                      {v && v.status !== "BOND_STATUS_BONDED" && !v.jailed && <Badge tone="warning">{t("stake.inactive")}</Badge>}
+                    </div>
+                    <div className="text-xs text-muted">
+                      {t("stake.rewards")}: <Amount amount={r} decimals={cur.coinDecimals} symbol={cur.coinDenom} />
+                    </div>
                   </div>
-                  <div className="text-xs text-muted">
-                    {t("stake.rewards")}: <Amount amount={r} decimals={cur.coinDecimals} symbol={cur.coinDenom} />
+                  <Amount amount={d.balance.amount} decimals={cur.coinDecimals} symbol={cur.coinDenom} className="font-semibold" />
+                  <div className="flex w-full flex-wrap gap-1.5 sm:w-auto">
+                    {v && <Button size="sm" onClick={() => setAction({ mode: "delegate", validator: v })}>{t("stake.delegate")}</Button>}
+                    {v && <Button size="sm" variant="secondary" onClick={() => setAction({ mode: "undelegate", validator: v })}>{t("stake.undelegate")}</Button>}
+                    {v && <Button size="sm" variant="secondary" onClick={() => setAction({ mode: "redelegate", validator: v })}>{t("stake.redelegate")}</Button>}
+                    <Button size="sm" variant="ghost" disabled={r === 0n} onClick={() => claim([valoper])}>{t("stake.claim")}</Button>
+                    <Button size="sm" variant="ghost" disabled={restakeAmountOf(r) === 0n} onClick={() => claimRestake([valoper])}>{t("stake.claimRestake")}</Button>
                   </div>
                 </div>
-                <Amount amount={d.balance.amount} decimals={cur.coinDecimals} symbol={cur.coinDenom} className="font-semibold" />
-                <div className="flex w-full gap-1.5 sm:w-auto">
-                  {v && <Button size="sm" onClick={() => setAction({ mode: "delegate", validator: v })}>{t("stake.delegate")}</Button>}
-                  {v && <Button size="sm" variant="secondary" onClick={() => setAction({ mode: "undelegate", validator: v })}>{t("stake.undelegate")}</Button>}
-                  {v && <Button size="sm" variant="secondary" onClick={() => setAction({ mode: "redelegate", validator: v })}>{t("stake.redelegate")}</Button>}
-                  <Button size="sm" variant="ghost" disabled={r === 0n} onClick={() => claim([d.delegation.validator_address])}>{t("stake.claim")}</Button>
-                </div>
+                {op && (
+                  <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-surface-2 px-3 py-2 text-xs">
+                    <Repeat className="size-3.5 text-muted" />
+                    <span className="font-medium">{t("stake.autocompound")}</span>
+                    {active ? (
+                      <Badge tone="success">{t("stake.autocompoundOnFreq", { freq: op.runTime })}</Badge>
+                    ) : (
+                      <span className="text-muted">{t("stake.autocompoundOff")}</span>
+                    )}
+                    <div className="ml-auto flex items-center gap-2">
+                      {isLedger ? (
+                        <span className="text-muted">{t("stake.autocompoundLedger")}</span>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant={active ? "secondary" : "primary"}
+                          onClick={() => setRestake({ operator: op, valoper, active })}
+                        >
+                          {active ? t("stake.autocompoundDisable") : t("stake.autocompoundEnable")}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -265,7 +333,76 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
           onClose={() => setAction(null)}
         />
       )}
+
+      {restake && address && (
+        <RestakeModal
+          chain={chain}
+          address={address}
+          operator={restake.operator}
+          valoper={restake.valoper}
+          active={restake.active}
+          onClose={() => setRestake(null)}
+        />
+      )}
     </div>
+  );
+}
+
+function RestakeModal({
+  chain,
+  address,
+  operator,
+  valoper,
+  active,
+  onClose,
+}: {
+  chain: ChainInfo;
+  address: string;
+  operator: RestakeOperator;
+  valoper: string;
+  active: boolean;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const locale = useLocale();
+  const expiryEpoch = Math.floor(Date.now() / 1000) + RESTAKE_GRANT_DURATION_SECONDS;
+  const titleKey = active ? "stake.autocompoundDisableTitle" : "stake.autocompoundEnableTitle";
+
+  const confirm = () => {
+    const msgs = active
+      ? msg.revokeRestake(address, operator.botAddress)
+      : msg.grantRestake(address, operator.botAddress, valoper, expiryEpoch);
+    onClose();
+    requestTx({ chain, title: t(titleKey, { validator: operator.moniker }), msgs });
+  };
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={t(titleKey, { validator: operator.moniker })}
+      footer={
+        <>
+          <Button variant="secondary" block onClick={onClose}>{t("common.cancel")}</Button>
+          <Button block onClick={confirm}>{t("common.continue")}</Button>
+        </>
+      }
+    >
+      <div className="space-y-3 text-sm">
+        {active ? (
+          <p>{t("stake.autocompoundDisableBody", { validator: operator.moniker })}</p>
+        ) : (
+          <>
+            <p>{t("stake.autocompoundBody", { validator: operator.moniker, freq: operator.runTime })}</p>
+            <ul className="list-disc space-y-1 pl-5 text-muted">
+              <li>{t("stake.autocompoundPoint1")}</li>
+              <li>{t("stake.autocompoundPoint2")}</li>
+              <li>{t("stake.autocompoundPoint3", { date: formatDateTime(new Date(expiryEpoch * 1000).toISOString(), locale) })}</li>
+            </ul>
+          </>
+        )}
+      </div>
+    </Modal>
   );
 }
 

@@ -7,10 +7,12 @@ import {
   getAllValidators,
   getCw20Balance,
   getDelegations,
+  getGrants,
   getLiveTally,
   getMyVote,
   getProposal,
   getProposals,
+  getRestakeOperators,
   getRewards,
   getStakingApr,
   getStakingInfo,
@@ -159,6 +161,26 @@ export function useRewards(chain: ChainInfo, address: string | undefined) {
     queryFn: () => getRewards(chain, address!),
     enabled: !!address,
     refetchInterval: 30_000,
+  });
+}
+
+export function useGrants(chain: ChainInfo, granter: string | undefined) {
+  return useQuery({
+    queryKey: ["grants", chain.chainId, granter],
+    queryFn: () => getGrants(chain, granter!),
+    enabled: !!granter,
+    refetchInterval: MIN,
+  });
+}
+
+export function useRestakeOperators(chain: ChainInfo) {
+  return useQuery({
+    queryKey: ["restake-operators", chain.registryName],
+    queryFn: () => getRestakeOperators(chain.registryName!),
+    enabled: !!chain.registryName,
+    staleTime: 6 * 60 * MIN,
+    gcTime: 12 * 60 * MIN,
+    retry: false,
   });
 }
 

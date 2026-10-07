@@ -251,6 +251,75 @@ export async function getRewards(chain: ChainInfo, address: string): Promise<Rew
   }
 }
 
+export interface AuthzGrant {
+  grantee: string;
+  /** The authorization's "@type" Any URL. */
+  type: string;
+  /** For a GenericAuthorization, the message type URL it authorizes. */
+  msg?: string;
+  /** For a StakeAuthorization, the validators the grantee may delegate to. */
+  allowList?: string[];
+  expiration: string | null;
+}
+
+/** All authz grants given BY `granter` (used to detect which validators have auto-compound on). */
+export async function getGrants(chain: ChainInfo, granter: string): Promise<AuthzGrant[]> {
+  try {
+    const r = await restGet<{
+      grants?: Array<{
+        grantee: string;
+        authorization: { "@type": string; msg?: string; allow_list?: { address?: string[] } };
+        expiration: string | null;
+      }>;
+    }>(chain, `/cosmos/authz/v1beta1/grants/granter/${enc(granter)}`);
+    return (r.grants ?? []).map((g) => ({
+      grantee: g.grantee,
+      type: g.authorization?.["@type"] ?? "",
+      msg: g.authorization?.msg,
+      allowList: g.authorization?.allow_list?.address,
+      expiration: g.expiration ?? null,
+    }));
+  } catch (e) {
+    if (e instanceof HttpError && e.status === 404) return [];
+    throw e;
+  }
+}
+
+export interface RestakeOperator {
+  moniker: string;
+  valoper: string;
+  /** The validator's bot account — the grantee of a REStake grant, never the valoper. */
+  botAddress: string;
+  /** How often the bot compounds, e.g. "every 1 hour" or "21:00"; free-form from the registry. */
+  runTime: string;
+  /** Minimum pending reward (base units) before the bot compounds. */
+  minimumReward: string;
+}
+
+/**
+ * REStake operators for a chain, read from the public validator registry (cosmos.directory).
+ * Only validators that actually run the auto-compound bot appear here, so the wallet can offer
+ * auto-compound exclusively toward an operator whose grant will really be executed.
+ */
+export async function getRestakeOperators(registrySlug: string): Promise<RestakeOperator[]> {
+  const r = await fetchJson<{
+    validators?: Array<{
+      moniker?: string;
+      operator_address?: string;
+      restake?: { address?: string; run_time?: string | string[]; minimum_reward?: number | string };
+    }>;
+  }>(`https://validators.cosmos.directory/chains/${enc(registrySlug)}`, 15_000);
+  return (r.validators ?? [])
+    .filter((v) => v.operator_address && v.restake?.address)
+    .map((v) => ({
+      moniker: v.moniker ?? v.operator_address!,
+      valoper: v.operator_address!,
+      botAddress: v.restake!.address!,
+      runTime: Array.isArray(v.restake!.run_time) ? v.restake!.run_time.join(", ") : String(v.restake!.run_time ?? ""),
+      minimumReward: String(v.restake!.minimum_reward ?? "0"),
+    }));
+}
+
 export interface StakingParams {
   unbondingTimeSeconds: number;
   bondDenom: string;
