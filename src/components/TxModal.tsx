@@ -1,7 +1,7 @@
 import type { EncodeObject } from "@cosmjs/proto-signing";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle2, ExternalLink, FileJson, ListChecks, XCircle } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { useBalanceOf, useAddress, usePrices } from "@/hooks/queries";
 import { useLocale, useT, type MessageKey } from "@/i18n";
@@ -21,7 +21,7 @@ import {
 import { useWallet } from "@/state/wallet";
 import { Fiat } from "./Amount";
 import { toast } from "./Toaster";
-import { Alert, Badge, Button, Spinner, Tabs, cx, Modal } from "./ui";
+import { Alert, Badge, Button, Input, Spinner, Tabs, cx, Modal } from "./ui";
 
 export interface TxRequest {
   chain: ChainInfo;
@@ -117,6 +117,8 @@ function TxModal({ request, onClose }: { request: TxRequest; onClose: () => void
   const feeBalance = useBalanceOf(chain, address, feeCur.coinMinimalDenom);
   const prices = usePrices(feeCur.coinGeckoId ? [feeCur.coinGeckoId] : []);
   const [level, setLevel] = useState<FeeLevel>("average");
+  const [gasOverride, setGasOverride] = useState<number | null>(null);
+  const [gasEditing, setGasEditing] = useState(false);
   const [view, setView] = useState<"summary" | "raw">("summary");
   const [phase, setPhase] = useState<"review" | "signing" | "done" | "failed">("review");
   const [result, setResult] = useState<BroadcastResult | null>(null);
@@ -132,8 +134,15 @@ function TxModal({ request, onClose }: { request: TxRequest; onClose: () => void
     gcTime: 0,
   });
 
-  const fees = sim.data
-    ? (Object.fromEntries((["low", "average", "high"] as FeeLevel[]).map((l) => [l, computeFee(feeCur, l, sim.data.gasLimit)])) as Record<FeeLevel, ReturnType<typeof computeFee>>)
+  // A fresh simulation clears any manual gas override so the estimate is shown again.
+  useEffect(() => {
+    setGasOverride(null);
+    setGasEditing(false);
+  }, [sim.data?.gasLimit]);
+
+  const gasLimit = gasOverride ?? sim.data?.gasLimit;
+  const fees = gasLimit
+    ? (Object.fromEntries((["low", "average", "high"] as FeeLevel[]).map((l) => [l, computeFee(feeCur, l, gasLimit)])) as Record<FeeLevel, ReturnType<typeof computeFee>>)
     : undefined;
   const fee = fees?.[level];
   const feeAmount = fee ? BigInt(fee.amount[0].amount) : 0n;
@@ -252,7 +261,38 @@ function TxModal({ request, onClose }: { request: TxRequest; onClose: () => void
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted">{t("tx.fee")}</span>
             {sim.isLoading && <span className="flex items-center gap-2 text-muted"><Spinner className="size-4" /> {t("tx.estimating")}</span>}
-            {sim.data && <span className="text-xs text-muted">{t("tx.gas", { gas: sim.data.gasLimit.toLocaleString(locale) })}</span>}
+            {sim.data && !gasEditing && (
+              <button
+                type="button"
+                onClick={() => setGasEditing(true)}
+                className="text-xs text-muted underline-offset-2 hover:text-fg hover:underline"
+              >
+                {t("tx.gas", { gas: (gasLimit ?? sim.data.gasLimit).toLocaleString(locale) })}
+                {gasOverride !== null && ` · ${t("tx.gasCustom")}`}
+              </button>
+            )}
+            {sim.data && gasEditing && (
+              <span className="flex items-center gap-1.5">
+                <Input
+                  className="h-7 w-28 text-xs tabular"
+                  inputMode="numeric"
+                  autoFocus
+                  value={(gasOverride ?? sim.data.gasLimit).toString()}
+                  onChange={(e) => {
+                    const n = parseInt(e.target.value.replace(/[^0-9]/g, ""), 10);
+                    setGasOverride(Number.isFinite(n) && n > 0 ? n : null);
+                  }}
+                  aria-label={t("tx.gasEdit")}
+                />
+                <button
+                  type="button"
+                  onClick={() => { setGasOverride(null); setGasEditing(false); }}
+                  className="text-xs text-muted hover:text-fg"
+                >
+                  {t("tx.gasReset")}
+                </button>
+              </span>
+            )}
           </div>
           {fees && (
             <div className="grid grid-cols-3 gap-2">
