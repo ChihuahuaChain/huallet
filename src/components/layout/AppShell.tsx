@@ -239,7 +239,7 @@ export function AppShell({ menu = <WalletMenu />, compact = false }: { menu?: Re
             {menu}
           </div>
         </header>
-        <main ref={mainRef} key={pathname} className={cx("swipe-page mx-auto min-h-[70vh] max-w-6xl lg:px-8 lg:py-8", compact ? "px-3 py-4" : "px-4 py-6")}>
+        <main ref={mainRef} key={pathname} className={cx("swipe-page mx-auto min-h-[70vh] max-w-6xl overflow-x-clip lg:px-8 lg:py-8", compact ? "px-3 py-4" : "px-4 py-6")}>
           <Outlet />
         </main>
       </div>

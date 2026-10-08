@@ -105,16 +105,16 @@ export function Dashboard() {
             <TokenIcon src={chain.chainSymbolImageUrl} symbol={chain.chainName} size={16} className="absolute -bottom-0.5 -right-0.5 ring-2 ring-surface" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 font-semibold">
-              {b.asset.coinDenom}
-              {!b.asset.verified && b.asset.bridged && <Badge tone="neutral">{t("assets.ibc")}</Badge>}
-              {!b.asset.verified && !b.asset.bridged && <Badge tone="warning">{t("assets.unverified")}</Badge>}
+            <div className="flex min-w-0 items-center gap-1.5 font-semibold">
+              <span className="truncate">{b.asset.coinDenom}</span>
+              {!b.asset.verified && b.asset.bridged && <Badge tone="neutral" className="shrink-0">{t("assets.ibc")}</Badge>}
+              {!b.asset.verified && !b.asset.bridged && <Badge tone="warning" className="shrink-0">{t("assets.unverified")}</Badge>}
             </div>
             <div className="truncate text-xs text-muted">{chain.chainName}</div>
           </div>
-          <div className="text-right">
-            <Amount amount={b.amount} decimals={b.asset.coinDecimals} className="font-semibold" />
-            <div className="text-xs text-muted"><Fiat value={value} /></div>
+          <div className="min-w-0 max-w-[55%] text-right">
+            <Amount amount={b.amount} decimals={b.asset.coinDecimals} className="block truncate font-semibold" />
+            <div className="truncate text-xs text-muted"><Fiat value={value} /></div>
           </div>
         </button>
         <button
