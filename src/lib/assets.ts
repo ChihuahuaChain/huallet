@@ -76,7 +76,8 @@ export async function resolveDenom(
       const known = originChain?.currencies.find((cur) => cur.coinMinimalDenom === trace.baseDenom);
       if (known && originChain) {
         const bridged = await isCanonicalBridge(qc, chain, originChain, trace.path).catch(() => false);
-        return { ...known, coinMinimalDenom: denom, verified: false, bridged, ibcPath: trace.path };
+        // A non-canonical look-alike must not borrow the real token's logo, or it would look legit.
+        return { ...known, coinMinimalDenom: denom, coinImageUrl: bridged ? known.coinImageUrl : undefined, verified: false, bridged, ibcPath: trace.path };
       }
       return {
         coinDenom: shortDenom(trace.baseDenom).toUpperCase().replace(/^U(?=[A-Z]{2,})/, ""),

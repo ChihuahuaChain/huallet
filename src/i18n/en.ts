@@ -266,6 +266,8 @@ export const en = {
   "dashboard.assets": "Assets",
   "dashboard.hideSmall": "Hide balances under 1 unit of fiat",
   "dashboard.empty": "No treats in the bowl yet",
+  "dashboard.showHidden": "Show hidden ({n})",
+  "dashboard.hideHidden": "Hide hidden ({n})",
   "dashboard.emptyBody": "Deposit tokens to your address to get started.",
   "dashboard.claimable": "Claimable rewards",
   "dashboard.claimableBody": "Staking rewards ready to collect.",
@@ -273,6 +275,8 @@ export const en = {
   "dashboard.startStaking": "Start staking",
   "assets.unverified": "Unverified",
   "assets.ibc": "IBC",
+  "assets.hide": "Hide",
+  "assets.unhide": "Unhide",
 
   "stake.title": "Stake",
   "stake.subtitle": "Earn rewards by delegating to validators. You keep custody of your tokens.",

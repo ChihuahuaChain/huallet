@@ -1,10 +1,10 @@
-import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Coins, Gift, Lock, Search, Repeat } from "lucide-react";
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Coins, Eye, EyeOff, Gift, Lock, Search, Repeat } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Amount, Fiat } from "@/components/Amount";
 import { PageHeader } from "@/components/layout/AppShell";
 import { requestTx } from "@/components/TxModal";
-import { Badge, Button, Card, CardHeader, EmptyState, Input, Skeleton, TokenIcon, Toggle } from "@/components/ui";
+import { Badge, Button, Card, CardHeader, EmptyState, Input, Skeleton, TokenIcon, Toggle, cx } from "@/components/ui";
 import { Mascot } from "@/components/Logo";
 import { usePortfolio, usePrices } from "@/hooks/queries";
 import { useStakingOverview, type ChainStaking } from "@/hooks/useStakingOverview";
@@ -13,6 +13,7 @@ import { stakeCurrencyOf } from "@/lib/chains/types";
 import { toNumber } from "@/lib/format";
 import { msg } from "@/lib/cosmos/tx";
 import { useChainsStore, useEnabledChains } from "@/state/chains";
+import { assetKey, useHiddenAssets } from "@/state/hiddenAssets";
 import { useSettings } from "@/state/settings";
 
 export function claimAll(s: ChainStaking, title: string) {
@@ -40,6 +41,8 @@ export function Dashboard() {
   const t = useT();
   const navigate = useNavigate();
   const { hideSmallBalances, hideUnverified, set, showPrices } = useSettings();
+  const { hidden, hide, unhide } = useHiddenAssets();
+  const [showHidden, setShowHidden] = useState(false);
   const selectChain = useChainsStore((s) => s.selectChain);
   const chains = useEnabledChains();
   const portfolio = usePortfolio();
@@ -75,13 +78,56 @@ export function Dashboard() {
   const loading = portfolio.some((p) => p.isLoading);
 
   const q = query.trim().toLowerCase();
-  const visible = rows
+  const hiddenSet = new Set(hidden);
+  const filtered = rows
     .filter((r) => !hideSmallBalances || r.value === undefined || r.value >= 1)
     .filter((r) => !hideUnverified || r.b.asset.verified || r.b.asset.bridged)
     .filter((r) => !q || r.b.asset.coinDenom.toLowerCase().includes(q) || r.chain.chainName.toLowerCase().includes(q))
     .sort((a, b) => (b.value ?? -1) - (a.value ?? -1));
+  const visible = filtered.filter((r) => !hiddenSet.has(assetKey(r.chain.chainId, r.b.denom)));
+  const hiddenRows = filtered.filter((r) => hiddenSet.has(assetKey(r.chain.chainId, r.b.denom)));
 
   const claimable = staking.filter((s) => s.rewards > 0n);
+
+  const renderAsset = ({ chain, b, value }: (typeof filtered)[number], isHiddenRow: boolean) => {
+    const key = assetKey(chain.chainId, b.denom);
+    return (
+      <div key={key} className={cx("group flex items-center rounded-xl pr-1.5 hover:bg-surface-2", isHiddenRow && "opacity-60")}>
+        <button
+          onClick={() => {
+            selectChain(chain.chainId);
+            navigate(`/send?denom=${encodeURIComponent(b.denom)}`);
+          }}
+          className="flex min-w-0 flex-1 items-center gap-3 px-3 py-3 text-left"
+        >
+          <div className="relative">
+            <TokenIcon src={b.asset.coinImageUrl} symbol={b.asset.coinDenom} />
+            <TokenIcon src={chain.chainSymbolImageUrl} symbol={chain.chainName} size={16} className="absolute -bottom-0.5 -right-0.5 ring-2 ring-surface" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 font-semibold">
+              {b.asset.coinDenom}
+              {!b.asset.verified && b.asset.bridged && <Badge tone="neutral">{t("assets.ibc")}</Badge>}
+              {!b.asset.verified && !b.asset.bridged && <Badge tone="warning">{t("assets.unverified")}</Badge>}
+            </div>
+            <div className="truncate text-xs text-muted">{chain.chainName}</div>
+          </div>
+          <div className="text-right">
+            <Amount amount={b.amount} decimals={b.asset.coinDecimals} className="font-semibold" />
+            <div className="text-xs text-muted"><Fiat value={value} /></div>
+          </div>
+        </button>
+        <button
+          onClick={() => (isHiddenRow ? unhide(key) : hide(key))}
+          title={t(isHiddenRow ? "assets.unhide" : "assets.hide")}
+          aria-label={t(isHiddenRow ? "assets.unhide" : "assets.hide")}
+          className="ml-1 shrink-0 rounded-lg p-2 text-muted opacity-60 transition hover:text-fg sm:opacity-0 sm:group-hover:opacity-100"
+        >
+          {isHiddenRow ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+        </button>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -129,38 +175,21 @@ export function Dashboard() {
                   <Skeleton className="h-4 flex-1" />
                 </div>
               ))}
-            {!loading && visible.length === 0 && (
+            {!loading && visible.length === 0 && hiddenRows.length === 0 && (
               <EmptyState icon={<Mascot size={56} />} title={t("dashboard.empty")} action={<Button onClick={() => navigate("/receive")}>{t("nav.receive")}</Button>}>
                 {t("dashboard.emptyBody")}
               </EmptyState>
             )}
-            {visible.map(({ chain, b, value }) => (
-              <button
-                key={`${chain.chainId}:${b.denom}`}
-                onClick={() => {
-                  selectChain(chain.chainId);
-                  navigate(`/send?denom=${encodeURIComponent(b.denom)}`);
-                }}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left hover:bg-surface-2"
-              >
-                <div className="relative">
-                  <TokenIcon src={b.asset.coinImageUrl} symbol={b.asset.coinDenom} />
-                  <TokenIcon src={chain.chainSymbolImageUrl} symbol={chain.chainName} size={16} className="absolute -bottom-0.5 -right-0.5 ring-2 ring-surface" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 font-semibold">
-                    {b.asset.coinDenom}
-                    {!b.asset.verified && b.asset.bridged && <Badge tone="neutral">{t("assets.ibc")}</Badge>}
-                    {!b.asset.verified && !b.asset.bridged && <Badge tone="warning">{t("assets.unverified")}</Badge>}
-                  </div>
-                  <div className="truncate text-xs text-muted">{chain.chainName}</div>
-                </div>
-                <div className="text-right">
-                  <Amount amount={b.amount} decimals={b.asset.coinDecimals} className="font-semibold" />
-                  <div className="text-xs text-muted"><Fiat value={value} /></div>
-                </div>
-              </button>
-            ))}
+            {visible.map((r) => renderAsset(r, false))}
+            {hiddenRows.length > 0 && (
+              <div className="px-3 pt-2">
+                <button onClick={() => setShowHidden((v) => !v)} className="flex items-center gap-1.5 text-xs font-medium text-muted hover:text-fg">
+                  {showHidden ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                  {t(showHidden ? "dashboard.hideHidden" : "dashboard.showHidden", { n: hiddenRows.length })}
+                </button>
+              </div>
+            )}
+            {showHidden && hiddenRows.map((r) => renderAsset(r, true))}
           </div>
         </Card>
 
