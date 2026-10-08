@@ -187,20 +187,16 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
           <Fiat value={fiat(totalStaked)} className="text-sm text-muted" />
         </Card>
         <Card className="bg-huahua-300/25 p-5 dark:bg-surface">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="text-sm text-muted">{t("stake.rewards")}</div>
-              <Amount amount={totalRewards} decimals={cur.coinDecimals} symbol={cur.coinDenom} className="mt-1 block text-2xl font-semibold" />
-              <Fiat value={fiat(totalRewards)} className="text-sm text-muted" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Button size="sm" disabled={validatorsWithRewards.length === 0} onClick={() => claim(validatorsWithRewards)}>
-                {t("stake.claimAll")}
-              </Button>
-              <Button size="sm" variant="secondary" disabled={validatorsWithRewards.length === 0} onClick={() => claimRestake(validatorsWithRewards)}>
-                {t("stake.claimRestakeAll")}
-              </Button>
-            </div>
+          <div className="text-sm text-muted">{t("stake.rewards")}</div>
+          <Amount amount={totalRewards} decimals={cur.coinDecimals} symbol={cur.coinDenom} className="mt-1 block text-2xl font-semibold" />
+          <Fiat value={fiat(totalRewards)} className="text-sm text-muted" />
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button size="sm" disabled={validatorsWithRewards.length === 0} onClick={() => claim(validatorsWithRewards)}>
+              {t("stake.claimAll")}
+            </Button>
+            <Button size="sm" variant="secondary" disabled={validatorsWithRewards.length === 0} onClick={() => claimRestake(validatorsWithRewards)}>
+              {t("stake.claimRestakeAll")}
+            </Button>
           </div>
         </Card>
       </div>
