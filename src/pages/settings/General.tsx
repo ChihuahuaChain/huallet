@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { LogOut } from "lucide-react";
-import { Badge, Button, Card, CardHeader, Field, Monogram, Select, Toggle } from "@/components/ui";
+import { AddressAvatar } from "@/components/AddressAvatar";
+import { Badge, Button, Card, CardHeader, Field, Select, Toggle } from "@/components/ui";
 import { useWallet } from "@/state/wallet";
 import { useT } from "@/i18n";
 import { useSettings, type Fiat, type Theme } from "@/state/settings";
@@ -16,7 +17,7 @@ export function GeneralSettings() {
     <Card>
       <CardHeader title={t("wallet.title")} subtitle={t("wallet.subtitle")} />
       <div className="flex flex-wrap items-center gap-3 p-5">
-        <Monogram text={name || "?"} />
+        <AddressAvatar seed={name || "?"} />
         <div className="min-w-0 flex-1">
           <div className="font-semibold">{name}</div>
           <div className="flex items-center gap-1.5 text-xs text-muted">

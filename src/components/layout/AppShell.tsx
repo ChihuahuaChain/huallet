@@ -30,7 +30,8 @@ import { useWallet } from "@/state/wallet";
 import { version } from "../../../package.json";
 import { Logo } from "../Logo";
 import { TxModalHost } from "../TxModal";
-import { Badge, CopyButton, Monogram, TokenIcon, cx } from "../ui";
+import { AddressAvatar } from "../AddressAvatar";
+import { Badge, CopyButton, TokenIcon, cx } from "../ui";
 
 const NAV: Array<{ to: string; key: MessageKey; icon: typeof LayoutDashboard; mobile?: boolean }> = [
   { to: "/", key: "nav.dashboard", icon: LayoutDashboard, mobile: true },
@@ -84,7 +85,7 @@ export function WalletMenu() {
     <Popover
       trigger={(open) => (
         <button className="flex items-center gap-2 rounded-xl border border-line bg-surface py-1.5 pl-1.5 pr-2.5 hover:bg-surface-2" aria-expanded={open}>
-          <Monogram text={name || "?"} size={28} />
+          <AddressAvatar seed={name || "?"} size={28} />
           <span className="hidden max-w-32 truncate text-sm font-semibold sm:inline">{name}</span>
           <ChevronDown className="size-4 text-muted" />
         </button>
@@ -93,7 +94,7 @@ export function WalletMenu() {
       {(close) => (
         <div>
           <div className="flex items-center gap-3 px-2 py-2">
-            <Monogram text={name || "?"} size={36} />
+            <AddressAvatar seed={name || "?"} size={36} />
             <div className="min-w-0 flex-1">
               <div className="truncate font-semibold">{name}</div>
               <div className="flex items-center gap-1.5 text-xs text-muted">

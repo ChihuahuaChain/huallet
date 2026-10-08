@@ -41,7 +41,7 @@ export function ReceivePage() {
             )}
           </div>
           <Alert tone="warning" icon={<AlertTriangle className="size-4 text-warning" />}>
-            {t("receive.warning", { chain: chain.chainName })}
+            <span className="whitespace-pre-line">{t("receive.warning", { chain: chain.chainName })}</span>
           </Alert>
         </Card>
 

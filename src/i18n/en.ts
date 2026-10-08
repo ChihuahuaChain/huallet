@@ -373,7 +373,7 @@ export const en = {
   "receive.title": "Receive",
   "receive.subtitle": "Share your address to receive tokens.",
   "receive.explorer": "Explorer",
-  "receive.warning": "Only send assets on {chain} to this address. Use IBC for tokens on other chains.",
+  "receive.warning": "Only send assets on {chain} to this address.\nUse IBC for tokens on other chains.",
   "receive.allAddresses": "Your addresses",
   "receive.allAddressesBody": "Same account, one address per chain.",
   "ibc.title": "IBC Transfer",

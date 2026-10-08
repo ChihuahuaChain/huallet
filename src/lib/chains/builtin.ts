@@ -60,8 +60,8 @@ export const BUILTIN_CHAINS: ChainInfo[] = [
     stakeCurrency: huahua,
     features: ["ibc-transfer", "ibc-go", "cosmwasm"],
     chainSymbolImageUrl: huahua.coinImageUrl,
-    txExplorer: "https://www.mintscan.io/chihuahua/tx/${txHash}",
-    accountExplorer: "https://www.mintscan.io/chihuahua/address/${accountAddress}",
+    txExplorer: "https://explorer.chihuahua.wtf/tx/${txHash}",
+    accountExplorer: "https://explorer.chihuahua.wtf/account/${accountAddress}",
   },
   {
     chainId: "cosmoshub-4",
