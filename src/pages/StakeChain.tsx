@@ -178,17 +178,17 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="p-5">
           <div className="text-sm text-muted">{t("stake.available")}</div>
-          <Amount amount={available} decimals={cur.coinDecimals} symbol={cur.coinDenom} className="mt-1 block text-2xl font-semibold" />
+          <Amount amount={available} decimals={cur.coinDecimals} symbol={cur.coinDenom} className="mt-1 block truncate text-2xl font-semibold" />
           <Fiat value={fiat(available)} className="text-sm text-muted" />
         </Card>
         <Card className="p-5">
           <div className="text-sm text-muted">{t("stake.staked")}</div>
-          <Amount amount={totalStaked} decimals={cur.coinDecimals} symbol={cur.coinDenom} className="mt-1 block text-2xl font-semibold" />
+          <Amount amount={totalStaked} decimals={cur.coinDecimals} symbol={cur.coinDenom} className="mt-1 block truncate text-2xl font-semibold" />
           <Fiat value={fiat(totalStaked)} className="text-sm text-muted" />
         </Card>
         <Card className="bg-huahua-300/25 p-5 dark:bg-surface">
           <div className="text-sm text-muted">{t("stake.rewards")}</div>
-          <Amount amount={totalRewards} decimals={cur.coinDecimals} symbol={cur.coinDenom} className="mt-1 block text-2xl font-semibold" />
+          <Amount amount={totalRewards} decimals={cur.coinDecimals} symbol={cur.coinDenom} className="mt-1 block truncate text-2xl font-semibold" />
           <Fiat value={fiat(totalRewards)} className="text-sm text-muted" />
           <div className="mt-3 flex flex-wrap gap-2">
             <Button size="sm" disabled={validatorsWithRewards.length === 0} onClick={() => claim(validatorsWithRewards)}>
