@@ -2,8 +2,9 @@ import { Eye, KeyRound, Pencil, Plus, ShieldAlert, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { MnemonicGrid } from "@/extension/onboarding/parts";
+import { AddressAvatar } from "@/components/AddressAvatar";
 import { toast } from "@/components/Toaster";
-import { Alert, Badge, Button, Card, CardHeader, CopyButton, Input, Modal, Monogram } from "@/components/ui";
+import { Alert, Badge, Button, Card, CardHeader, CopyButton, Input, Modal } from "@/components/ui";
 import { useT } from "@/i18n";
 import { hdPathFor, type KeyMeta } from "@/lib/keyring/keyring";
 import { keyring } from "@/extension/popup/keyring";
@@ -30,7 +31,7 @@ export function AccountsSettings() {
         <div className="divide-y divide-line p-2">
           {keys.map((k) => (
             <div key={k.id} className="flex flex-wrap items-center gap-3 px-3 py-3">
-              <Monogram text={k.name} />
+              <AddressAvatar seed={k.name} />
               <div className="min-w-0 flex-1 basis-40">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-semibold">
                   {k.name}

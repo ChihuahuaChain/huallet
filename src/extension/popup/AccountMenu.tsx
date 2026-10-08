@@ -1,8 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ExternalLink, Lock, Maximize2, Plus, ShieldAlert, Usb, UserCog } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { AddressAvatar } from "@/components/AddressAvatar";
 import { Popover } from "@/components/layout/AppShell";
-import { CopyButton, Monogram, cx } from "@/components/ui";
+import { CopyButton, cx } from "@/components/ui";
 import { useAddress } from "@/hooks/queries";
 import { useT } from "@/i18n";
 import { explorerAccountUrl } from "@/lib/chains/types";
@@ -29,7 +30,7 @@ export function AccountMenu() {
       <Popover
         trigger={(open) => (
           <button className="flex items-center gap-1.5 rounded-xl border border-line bg-surface py-1.5 pl-1.5 pr-2 hover:bg-surface-2" aria-expanded={open}>
-            <Monogram text={current?.name ?? "?"} size={26} />
+            <AddressAvatar seed={current?.name ?? "?"} size={26} />
             <span className="hidden max-w-28 truncate text-sm font-semibold sm:inline">{current?.name}</span>
             {current && !current.backedUp && <ShieldAlert className="size-4 text-warning" aria-label={t("backup.notBackedUp")} />}
             <ChevronDown className="size-4 text-muted" />
@@ -60,7 +61,7 @@ export function AccountMenu() {
                   }}
                   className={cx("flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left hover:bg-surface-2", k.id === current?.id && "bg-surface-2")}
                 >
-                  <Monogram text={k.name} size={28} />
+                  <AddressAvatar seed={k.name} size={28} />
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold">{k.name}</span>
                   {k.type === "ledger" && <Usb className="size-4 text-muted" aria-label="Ledger" />}
                   {!k.backedUp && <ShieldAlert className="size-4 text-warning" />}
