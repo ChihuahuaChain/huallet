@@ -272,6 +272,7 @@ export const en = {
   "dashboard.noRewards": "No rewards to claim",
   "dashboard.startStaking": "Start staking",
   "assets.unverified": "Unverified",
+  "assets.ibc": "IBC",
 
   "stake.title": "Stake",
   "stake.subtitle": "Earn rewards by delegating to validators. You keep custody of your tokens.",
@@ -553,6 +554,8 @@ export const en = {
   "settings.pricesBody": "Prices come from CoinGecko. Only token IDs are sent — never your address.",
   "settings.privacy": "Privacy mode",
   "settings.privacyBody": "Mask balances on screen.",
+  "settings.hideUnverified": "Hide unverified tokens",
+  "settings.hideUnverifiedBody": "Hide tokens that aren’t in the chain registry and didn’t arrive over a canonical IBC channel. Verified and bridged (IBC) tokens stay visible.",
   "biometric.title": "Biometric unlock",
   "biometric.body": "Unlock Huallet with your fingerprint or face instead of typing your password. The password is kept encrypted by the phone's secure hardware and can only be read after a biometric check.",
   "biometric.enable": "Turn on",

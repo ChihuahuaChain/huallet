@@ -39,7 +39,7 @@ function Stat({ label, children, icon }: { label: string; children: React.ReactN
 export function Dashboard() {
   const t = useT();
   const navigate = useNavigate();
-  const { hideSmallBalances, set, showPrices } = useSettings();
+  const { hideSmallBalances, hideUnverified, set, showPrices } = useSettings();
   const selectChain = useChainsStore((s) => s.selectChain);
   const chains = useEnabledChains();
   const portfolio = usePortfolio();
@@ -77,6 +77,7 @@ export function Dashboard() {
   const q = query.trim().toLowerCase();
   const visible = rows
     .filter((r) => !hideSmallBalances || r.value === undefined || r.value >= 1)
+    .filter((r) => !hideUnverified || r.b.asset.verified || r.b.asset.bridged)
     .filter((r) => !q || r.b.asset.coinDenom.toLowerCase().includes(q) || r.chain.chainName.toLowerCase().includes(q))
     .sort((a, b) => (b.value ?? -1) - (a.value ?? -1));
 
@@ -149,7 +150,8 @@ export function Dashboard() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 font-semibold">
                     {b.asset.coinDenom}
-                    {!b.asset.verified && <Badge tone="warning">{t("assets.unverified")}</Badge>}
+                    {!b.asset.verified && b.asset.bridged && <Badge tone="neutral">{t("assets.ibc")}</Badge>}
+                    {!b.asset.verified && !b.asset.bridged && <Badge tone="warning">{t("assets.unverified")}</Badge>}
                   </div>
                   <div className="truncate text-xs text-muted">{chain.chainName}</div>
                 </div>

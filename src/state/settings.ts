@@ -11,6 +11,7 @@ export interface SettingsState {
   autoLockMinutes: number;
   showPrices: boolean;
   hideSmallBalances: boolean;
+  hideUnverified: boolean;
   hideBalances: boolean;
   set: (patch: Partial<Omit<SettingsState, "set">>) => void;
 }
@@ -23,6 +24,7 @@ export const useSettings = create<SettingsState>()(
       autoLockMinutes: 15,
       showPrices: true,
       hideSmallBalances: false,
+      hideUnverified: false,
       hideBalances: false,
       set: (patch) => set(patch),
     }),
