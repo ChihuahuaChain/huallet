@@ -1,11 +1,13 @@
-import { AlertTriangle, ExternalLink } from "lucide-react";
+import { AlertTriangle, ExternalLink, Tag } from "lucide-react";
 import { PageHeader } from "@/components/layout/AppShell";
 import { NfcReceive } from "@/components/PayRequest";
 import { QrCode } from "@/components/QrCode";
+import { useDogtagAlias } from "@/components/RecipientInput";
 import { Alert, Card, CardHeader, CopyButton, Skeleton, TokenIcon } from "@/components/ui";
 import { useAddress, useAddresses } from "@/hooks/queries";
 import { useT } from "@/i18n";
 import { explorerAccountUrl } from "@/lib/chains/types";
+import { DOGTAGS_URL, dogtagsContract } from "@/lib/dogtags";
 import { shortAddress } from "@/lib/format";
 import { useChainsStore, useEnabledChains, useSelectedChain } from "@/state/chains";
 
@@ -17,6 +19,8 @@ export function ReceivePage() {
   const addresses = useAddresses(chains);
   const selectChain = useChainsStore((s) => s.selectChain);
   const explorer = address ? explorerAccountUrl(chain, address) : undefined;
+  const alias = useDogtagAlias(chain, address);
+  const hasDogtags = !!dogtagsContract(chain);
 
   return (
     <div className="space-y-6">
@@ -31,12 +35,25 @@ export function ReceivePage() {
           <div className="w-full rounded-xl bg-surface-2 p-3">
             <div className="break-all font-mono text-sm">{address ?? "…"}</div>
           </div>
+          {alias && (
+            <div className="inline-flex items-center gap-2 rounded-full bg-rust/10 py-1 pl-3 pr-1 text-sm">
+              <Tag className="size-3.5 text-rust" />
+              <span className="text-muted">{t("receive.alias")}</span>
+              <span className="font-semibold text-rust">{alias}</span>
+              <CopyButton text={alias} />
+            </div>
+          )}
           <NfcReceive chain={chain} address={address} />
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-center gap-2">
             {address && <CopyButton text={address} label={t("common.copyAddress")} className="border border-line px-3" />}
             {explorer && (
               <a href={explorer} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm text-muted hover:bg-surface-2 hover:text-fg">
                 <ExternalLink className="size-4" /> {t("receive.explorer")}
+              </a>
+            )}
+            {hasDogtags && (
+              <a href={DOGTAGS_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm text-muted hover:bg-surface-2 hover:text-fg">
+                <Tag className="size-4" /> {alias ? t("receive.manageDogtag") : t("receive.getAlias")}
               </a>
             )}
           </div>

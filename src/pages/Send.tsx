@@ -6,7 +6,7 @@ import { toast } from "@/components/Toaster";
 import type { PaymentRequest } from "@/lib/payreq";
 import { Amount, Fiat } from "@/components/Amount";
 import { PageHeader } from "@/components/layout/AppShell";
-import { RecipientInput, useRecipientError } from "@/components/RecipientInput";
+import { RecipientInput, useDogtagResolution, useRecipientError } from "@/components/RecipientInput";
 import { requestTx } from "@/components/TxModal";
 import { Alert, Button, Card, Field, Input, Select } from "@/components/ui";
 import { useAddress, useBalances, useCw20Balances, usePrices } from "@/hooks/queries";
@@ -79,9 +79,13 @@ export function SendPage() {
   const token = options.find((o) => o.key === tokenKey);
   const price = usePrices(token?.coinGeckoId ? [token.coinGeckoId] : []).data?.[token?.coinGeckoId ?? ""];
   const recipientCheck = useRecipientError(recipient, chain, address);
+  const dogtag = useDogtagResolution(recipient, chain);
   const everyChain = useAllChains();
   const check = recipient ? checkAddress(recipient, chain, everyChain) : undefined;
   const otherChain = check && !check.ok ? check.otherChain : undefined;
+  // A Dogtags alias sends to its resolved address; a plain address sends to itself.
+  const sendAddress = dogtag.isAlias ? dogtag.address : recipient;
+  const recipientOk = dogtag.isAlias ? dogtag.status === "resolved" : !!recipient && !recipientCheck.error;
   const max = token ? (token.amount > feeReserveFor(chain, token.denom) ? token.amount - feeReserveFor(chain, token.denom) : 0n) : 0n;
 
   let parsed: bigint | null = null;
@@ -96,7 +100,7 @@ export function SendPage() {
     }
   }
   const memoSuspicious = /\b([a-z]+\s+){11,}[a-z]+\b/i.test(memo) || /^(0x)?[0-9a-f]{64}$/i.test(memo.trim());
-  const valid = !!token && !!address && !!recipient && !recipientCheck.error && parsed !== null && !amountError && !memoSuspicious;
+  const valid = !!token && !!address && recipientOk && !!sendAddress && parsed !== null && !amountError && !memoSuspicious;
 
   // A request from a QR code or NFC fills the form; the user still reviews and signs.
   const applyRequest = (r: PaymentRequest, via: "qr" | "nfc", chosen?: ChosenAmount) => {
@@ -126,8 +130,8 @@ export function SendPage() {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (!valid || !token || !address || parsed === null) return;
-    const m = token.cw20 ? msg.cw20Transfer(address, token.cw20, recipient, parsed) : msg.send(address, recipient, token.denom, parsed);
+    if (!valid || !token || !address || parsed === null || !sendAddress) return;
+    const m = token.cw20 ? msg.cw20Transfer(address, token.cw20, sendAddress, parsed) : msg.send(address, sendAddress, token.denom, parsed);
     requestTx({
       chain,
       title: t("send.confirmTitle", { symbol: token.symbol }),
@@ -158,7 +162,7 @@ export function SendPage() {
           </Field>
 
           <PayRequestButtons tokens={options} onRequest={applyRequest} />
-          <RecipientInput value={recipient} onChange={setRecipient} onMemo={setMemo} chain={chain} own={address} />
+          <RecipientInput value={recipient} onChange={setRecipient} onMemo={setMemo} chain={chain} own={address} dogtag={dogtag} />
 
           <Field
             label={t("send.amount")}

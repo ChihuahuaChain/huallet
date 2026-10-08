@@ -1,0 +1,1 @@
+- Dogtags: send to an alias instead of an address (resolved on-chain), and show your alias on the Receive screen
