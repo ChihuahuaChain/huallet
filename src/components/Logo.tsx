@@ -65,12 +65,22 @@ export function Mascot({ size = 40, className, track = true }: { size?: number; 
   );
 }
 
-export function Logo({ size = 36, className, withText = true }: { size?: number; className?: string; withText?: boolean }) {
+export function Logo({
+  size = 36,
+  className,
+  withText = true,
+  stacked = false,
+}: {
+  size?: number;
+  className?: string;
+  withText?: boolean;
+  stacked?: boolean;
+}) {
   return (
-    <div className={cx("flex items-center gap-2", className)}>
+    <div className={cx("flex gap-2", stacked ? "flex-col items-center" : "items-center", className)}>
       <Mascot size={size} />
       {withText && (
-        <span className="font-display text-xl font-bold tracking-tight">
+        <span className={cx("font-display font-bold tracking-tight", stacked ? "text-2xl" : "text-xl")}>
           Hua<span className="text-rust">llet</span>
         </span>
       )}
