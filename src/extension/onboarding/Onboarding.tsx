@@ -9,7 +9,6 @@ export function Onboarding() {
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[1fr_1.1fr]">
       <section className="paw-bg relative hidden flex-col justify-between bg-huahua-300 p-10 text-ink lg:flex">
-        <Logo size={44} />
         <div className="max-w-md">
           <Mascot size={360} className="mb-6 drop-shadow-[0_6px_0_rgba(55,54,54,0.15)]" />
           <h1 className="whitespace-pre-line text-5xl font-bold leading-tight">{t("onboarding.hero.title")}</h1>
