@@ -88,7 +88,7 @@ export function Dashboard() {
       <PageHeader title={t("dashboard.title")} subtitle={t("dashboard.subtitle")} />
 
       <section className="paw-bg relative overflow-hidden rounded-3xl bg-huahua-300 p-6 text-ink shadow-card sm:p-8 dark:bg-surface dark:text-fg">
-        <Mascot size={120} className="pointer-events-none absolute -right-4 -top-4 hidden rotate-12 opacity-90 sm:block" />
+        <Mascot size={152} className="pointer-events-none absolute -right-4 -top-4 hidden rotate-12 opacity-90 sm:block" />
         <div className="text-sm font-medium text-ink/70 dark:text-muted">{t("dashboard.total")}</div>
         <div className="mt-1 font-display text-4xl font-bold sm:text-5xl">
           {showPrices ? loading && total === 0 ? <Skeleton className="h-12 w-48 bg-ink/10" /> : <Fiat value={total} /> : "—"}

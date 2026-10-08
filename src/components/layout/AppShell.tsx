@@ -27,6 +27,7 @@ import { shortAddress } from "@/lib/format";
 import { useChainsStore, useEnabledChains, useSelectedChain } from "@/state/chains";
 import { useSettings } from "@/state/settings";
 import { useWallet } from "@/state/wallet";
+import { version } from "../../../package.json";
 import { Logo } from "../Logo";
 import { TxModalHost } from "../TxModal";
 import { Badge, CopyButton, Monogram, TokenIcon, cx } from "../ui";
@@ -214,6 +215,7 @@ export function AppShell({ menu = <WalletMenu />, compact = false }: { menu?: Re
         <div className="m-3 rounded-2xl bg-surface-2 p-4 text-xs text-muted paw-bg">
           <div className="font-display text-sm font-semibold text-fg">{t("shell.selfCustody")}</div>
           <p className="mt-1">{t(localKeys ? "shell.selfCustodyBodyLocal" : "shell.selfCustodyBody")}</p>
+          <p className="mt-2 text-[11px] text-muted/70">v{version}</p>
         </div>
       </aside>
 

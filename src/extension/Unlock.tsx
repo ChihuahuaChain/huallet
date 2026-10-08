@@ -83,7 +83,7 @@ export function Unlock() {
   return (
     <div className="paw-bg flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm text-center">
-        <Mascot size={96} className="mx-auto mb-4" />
+        <Mascot size={120} className="mx-auto mb-4" />
         <h1 className="text-3xl font-bold">{t("unlock.title")}</h1>
         <p className="mt-1 text-muted">{t("unlock.subtitle")}</p>
         <form onSubmit={submit} className="mt-8 space-y-3 text-left">
