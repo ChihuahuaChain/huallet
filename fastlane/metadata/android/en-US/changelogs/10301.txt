@@ -1,0 +1,4 @@
+- Fix transactions failing with "out of gas" on Chihuahua
+- New app languages: Italiano, Español, Português, Français, Deutsch, Korean, Simplified Chinese, Japanese
+- Redesigned Settings: a single grouped list
+- Default networks: Chihuahua, Cosmos Hub and Osmosis

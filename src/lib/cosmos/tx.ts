@@ -100,7 +100,9 @@ async function connect(chain: ChainInfo, signer: OfflineSigner): Promise<{ clien
 
 export type FeeLevel = "low" | "average" | "high";
 
-export const GAS_ADJUSTMENT = 1.4;
+// Chihuahua's simulation under-reports real execution gas (notably WritePerByte)
+// by ~40%, so a 1.4 margin left txs failing out-of-gas. 1.6 gives headroom.
+export const GAS_ADJUSTMENT = 1.6;
 
 function priceToString(n: number): string {
   return n.toFixed(18).replace(/\.?0+$/, "") || "0";
