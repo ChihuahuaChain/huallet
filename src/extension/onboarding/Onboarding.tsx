@@ -11,8 +11,8 @@ export function Onboarding() {
       <section className="paw-bg relative hidden flex-col justify-between bg-huahua-300 p-10 text-ink lg:flex">
         <Logo size={44} />
         <div className="max-w-md">
-          <Mascot size={120} className="mb-6 drop-shadow-[0_6px_0_rgba(55,54,54,0.15)]" />
-          <h1 className="text-5xl font-bold leading-tight">{t("onboarding.hero.title")}</h1>
+          <Mascot size={360} className="mb-6 drop-shadow-[0_6px_0_rgba(55,54,54,0.15)]" />
+          <h1 className="whitespace-pre-line text-5xl font-bold leading-tight">{t("onboarding.hero.title")}</h1>
           <p className="mt-4 text-lg text-ink/80">{t("onboarding.hero.body")}</p>
           <ul className="mt-8 space-y-3 text-sm font-medium">
             <li className="flex items-center gap-3"><Lock className="size-5" /> {t("onboarding.hero.p1")}</li>
@@ -27,7 +27,7 @@ export function Onboarding() {
           <div className="mb-8 lg:hidden">
             <Logo size={40} />
           </div>
-          <h2 className="mb-1 text-3xl font-bold">{t("onboarding.welcome")}</h2>
+          <h2 className="mb-1 text-3xl font-bold">{t("onboarding.welcomeTo")} Hua<span className="text-rust">llet</span></h2>
           <p className="mb-6 text-muted">{t("onboarding.welcomeBody")}</p>
           <KeyFlow withPassword defaultName={t("accounts.defaultName", { n: 1 })} onComplete={async (key, password) => void (await keyring.create(password, key))} />
         </div>

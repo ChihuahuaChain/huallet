@@ -3,7 +3,7 @@ import { ExternalLink } from "lucide-react";
 import { useEffect } from "react";
 import { createHashRouter, Navigate, Outlet, RouterProvider } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
-import { Logo, Mascot } from "@/components/Logo";
+import { Mascot } from "@/components/Logo";
 import { RouteError } from "@/components/RouteError";
 import { Toaster } from "@/components/Toaster";
 import { Button } from "@/components/ui";
@@ -81,9 +81,10 @@ function OpenInTab() {
   const t = useT();
   return (
     <div className="paw-bg flex min-h-[inherit] flex-col items-center justify-center gap-4 p-6 text-center">
-      <Logo size={40} />
-      <Mascot size={96} />
-      <h1 className="text-2xl font-bold">{t("onboarding.welcome")}</h1>
+      <Mascot size={240} />
+      <h1 className="text-2xl font-bold">
+        {t("onboarding.welcomeTo")} Hua<span className="text-rust">llet</span>
+      </h1>
       <p className="text-sm text-muted">{t("ext.setupInTab")}</p>
       <Button
         size="lg"
