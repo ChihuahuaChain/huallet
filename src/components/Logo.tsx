@@ -12,7 +12,7 @@ const EYES = [
 ] as const;
 const MAX_SHIFT = 12;
 
-export function Mascot({ size = 40, className, track = true }: { size?: number; className?: string; track?: boolean }) {
+export function Mascot({ size = 40, className, track = true, lively = false }: { size?: number; className?: string; track?: boolean; lively?: boolean }) {
   const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
@@ -58,6 +58,7 @@ export function Mascot({ size = 40, className, track = true }: { size?: number; 
       aria-hidden
       className={cx(
         "inline-block shrink-0 select-none [&>svg]:block [&>svg]:h-full [&>svg]:w-full [&_.hua-eye-l]:transition-transform [&_.hua-eye-r]:transition-transform [&_.hua-eye-l]:duration-100 [&_.hua-eye-r]:duration-100",
+        lively && "hua-lively",
         className,
       )}
       dangerouslySetInnerHTML={{ __html: LOGO_SVG }}

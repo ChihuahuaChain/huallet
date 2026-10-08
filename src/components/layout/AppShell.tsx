@@ -37,7 +37,7 @@ const NAV: Array<{ to: string; key: MessageKey; icon: typeof LayoutDashboard; mo
   { to: "/", key: "nav.dashboard", icon: LayoutDashboard, mobile: true },
   { to: "/stake", key: "nav.stake", icon: Coins, mobile: true },
   { to: "/swap", key: "nav.swap", icon: Repeat, mobile: true },
-  { to: "/send", key: "nav.send", icon: Send, mobile: true },
+  { to: "/send", key: "nav.send", icon: Send },
   { to: "/receive", key: "nav.receive", icon: QrCode },
   { to: "/ibc", key: "nav.ibc", icon: ArrowLeftRight },
   { to: "/governance", key: "nav.governance", icon: Landmark },
@@ -250,10 +250,16 @@ export function AppShell({ menu = <WalletMenu />, compact = false }: { menu?: Re
             key={to}
             to={to}
             end={to === "/"}
-            className={({ isActive }) => cx("flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium", isActive ? "text-rust" : "text-muted")}
+            className={({ isActive }) =>
+              cx(
+                "relative flex min-w-0 flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors",
+                "before:absolute before:left-1/2 before:top-0 before:h-0.5 before:w-7 before:-translate-x-1/2 before:rounded-full before:transition-colors",
+                isActive ? "text-rust before:bg-rust" : "text-muted before:bg-transparent",
+              )
+            }
           >
-            <Icon className="size-5" />
-            {t(key)}
+            <Icon className="size-5 shrink-0" />
+            <span className="max-w-full truncate">{t(key)}</span>
           </NavLink>
         ))}
       </nav>

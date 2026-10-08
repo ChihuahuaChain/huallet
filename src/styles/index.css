@@ -132,6 +132,14 @@ html[data-view="popup"] #root,
 html[data-view="approval"] #root {
   min-height: 600px;
 }
+/* Fixed narrow viewports (toolbar popup, side panel): the sticky top bar's
+   controls can sum a hair past the available width once the vertical scrollbar
+   is accounted for. Clip horizontally so it never shows a stray scrollbar —
+   same treatment as the mobile layout below. Popovers stay within bounds. */
+html[data-view="popup"] body,
+html[data-view="sidepanel"] body {
+  overflow-x: clip;
+}
 
 /* Android app: edge-to-edge. Capacitor passes the system bar sizes as
    --safe-area-inset-* (newer WebViews) and pads the view natively on older
@@ -172,3 +180,28 @@ html[data-view="mobile"] .modal-sheet {
 @keyframes swipe-in-right { from { transform: translateX(-28px); opacity: 0.4; } }
 html[data-swipe="left"] .swipe-page { animation: swipe-in-left 0.18s ease-out; }
 html[data-swipe="right"] .swipe-page { animation: swipe-in-right 0.18s ease-out; }
+
+/* Lively mascot (Unlock / hero): a gentle idle bob-and-sway plus an occasional
+   tongue lick, in the spirit of the chihuahua.wtf logo. Eye-tracking stays in
+   JS (Mascot); the global prefers-reduced-motion rule above neutralises these. */
+.hua-lively > svg {
+  transform-origin: 50% 82%;
+  animation: hua-bob 4.8s ease-in-out infinite;
+  will-change: transform;
+}
+.hua-lively .st5 {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: hua-lick 6s ease-in-out infinite;
+}
+@keyframes hua-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-5px) rotate(-1.6deg); }
+  50% { transform: translateY(-1px) rotate(0deg); }
+  75% { transform: translateY(-4px) rotate(1.6deg); }
+}
+@keyframes hua-lick {
+  0%, 72%, 100% { transform: scaleY(1) translateY(0); }
+  80% { transform: scaleY(1.3) translateY(8%); }
+  88% { transform: scaleY(1.1) translateY(2%); }
+}

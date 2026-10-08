@@ -61,7 +61,7 @@ try {
   const pageErrors = [];
   popup.on("pageerror", (e) => pageErrors.push(`${popup.url()}: ${e.message}`));
   const routes = ["/", "/stake", "/stake/chihuahua-1", "/swap", "/send", "/receive", "/ibc", "/governance", "/chains", "/history",
-    "/settings", "/settings/security", "/settings/accounts", "/settings/sites", "/settings/address-book", "/settings/tokens", "/accounts/add"];
+    "/settings", "/settings/password", "/settings/accounts", "/settings/sites", "/settings/address-book", "/settings/tokens", "/settings/about", "/accounts/add"];
   for (const r of routes) {
     await popup.evaluate((h) => { window.location.hash = h; }, r);
     await sleep(1200);

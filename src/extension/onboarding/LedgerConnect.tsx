@@ -8,7 +8,7 @@ import { useT } from "@/i18n";
 import { extApi } from "@/lib/kv";
 import type { NewKey } from "@/lib/keyring/keyring";
 import { isLedgerSupported, isNativeLedger, readLedgerPubkey, showAddressOnLedger } from "../ledger/ledger";
-import { isPopupView } from "../popup/view";
+import { isFullTab } from "../popup/view";
 
 export function LedgerConnect({ onNext, onBack }: { onNext: (k: Omit<NewKey, "name">) => void; onBack?: () => void }) {
   const t = useT();
@@ -37,7 +37,7 @@ export function LedgerConnect({ onNext, onBack }: { onNext: (k: Omit<NewKey, "na
     );
   }
 
-  if (isPopupView()) {
+  if (!isFullTab()) {
     return (
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">{t("ledger.title")}</h2>

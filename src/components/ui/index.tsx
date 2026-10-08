@@ -160,6 +160,22 @@ export function Select({ className, children, ...rest }: React.SelectHTMLAttribu
   );
 }
 
+export function Switch({ checked, onChange, id, "aria-label": ariaLabel }: { checked: boolean; onChange: (v: boolean) => void; id?: string; "aria-label"?: string }) {
+  return (
+    <button
+      id={id}
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={ariaLabel}
+      onClick={() => onChange(!checked)}
+      className={cx("relative h-6 w-11 shrink-0 rounded-full transition-colors", checked ? "bg-rust" : "bg-line")}
+    >
+      <span className={cx("absolute top-0.5 size-5 rounded-full bg-white shadow transition-all", checked ? "left-[22px]" : "left-0.5")} />
+    </button>
+  );
+}
+
 export function Toggle({ checked, onChange, label, description }: { checked: boolean; onChange: (v: boolean) => void; label: ReactNode; description?: ReactNode }) {
   const id = useId();
   return (
@@ -168,15 +184,7 @@ export function Toggle({ checked, onChange, label, description }: { checked: boo
         <div className="text-sm font-medium">{label}</div>
         {description && <div className="text-xs text-muted">{description}</div>}
       </label>
-      <button
-        id={id}
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={cx("relative h-6 w-11 shrink-0 rounded-full transition-colors", checked ? "bg-rust" : "bg-line")}
-      >
-        <span className={cx("absolute top-0.5 size-5 rounded-full bg-white shadow transition-all", checked ? "left-[22px]" : "left-0.5")} />
-      </button>
+      <Switch id={id} checked={checked} onChange={onChange} />
     </div>
   );
 }

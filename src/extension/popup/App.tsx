@@ -9,7 +9,7 @@ import { Toaster } from "@/components/Toaster";
 import { Button } from "@/components/ui";
 import { useHydrated } from "@/hooks/useHydrated";
 import { useTheme } from "@/hooks/useTheme";
-import { useT } from "@/i18n";
+import { useSyncLanguage, useT } from "@/i18n";
 import { extApi } from "@/lib/kv";
 import { ChainsPage } from "@/pages/Chains";
 import { Dashboard } from "@/pages/Dashboard";
@@ -21,8 +21,6 @@ import { ReceivePage } from "@/pages/Receive";
 import { SendPage } from "@/pages/Send";
 import { SwapPage } from "@/pages/Swap";
 import { AddressBookSettings } from "@/pages/settings/AddressBook";
-import { GeneralSettings } from "@/pages/settings/General";
-import { SettingsLayout, WEB_SETTINGS_TABS, type SettingsTab } from "@/pages/settings/SettingsLayout";
 import { TokensSettings } from "@/pages/settings/Tokens";
 import { StakeChain } from "@/pages/StakeChain";
 import { StakeOverview } from "@/pages/StakeOverview";
@@ -31,7 +29,8 @@ import { AddAccount } from "../onboarding/AddAccount";
 import { Backup } from "../onboarding/Backup";
 import { Onboarding } from "../onboarding/Onboarding";
 import { AccountsSettings } from "../settings/Accounts";
-import { SecuritySettings } from "../settings/Security";
+import { ChangePasswordForm } from "../settings/Security";
+import { SettingsAbout, SettingsHome, SettingsSubPage } from "../settings/Settings";
 import { useKeyring, useSelectedKey } from "../state/keyringStore";
 import { Unlock } from "../Unlock";
 import { AccountMenu } from "./AccountMenu";
@@ -44,14 +43,6 @@ import { extView, isPopupView } from "./view";
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 2, refetchOnWindowFocus: false, staleTime: 20_000 } },
 });
-
-const EXT_SETTINGS_TABS: SettingsTab[] = [
-  WEB_SETTINGS_TABS[0],
-  { to: "/settings/security", key: "settings.security" },
-  { to: "/settings/accounts", key: "settings.accounts" },
-  { to: "/settings/sites", key: "ext.sites.title" },
-  ...WEB_SETTINGS_TABS.slice(1),
-];
 
 function useActivityPing(enabled: boolean) {
   useEffect(() => {
@@ -153,14 +144,14 @@ const router = createHashRouter([
           { path: "history", element: <HistoryPage /> },
           {
             path: "settings",
-            element: <SettingsLayout tabs={EXT_SETTINGS_TABS} />,
             children: [
-              { index: true, element: <GeneralSettings /> },
-              { path: "security", element: <SecuritySettings /> },
-              { path: "accounts", element: <AccountsSettings /> },
-              { path: "sites", element: <ConnectedSites /> },
-              { path: "address-book", element: <AddressBookSettings /> },
-              { path: "tokens", element: <TokensSettings /> },
+              { index: true, element: <SettingsHome /> },
+              { path: "password", element: <SettingsSubPage titleKey="security.changePassword"><ChangePasswordForm /></SettingsSubPage> },
+              { path: "sites", element: <SettingsSubPage titleKey="ext.sites.title"><ConnectedSites /></SettingsSubPage> },
+              { path: "accounts", element: <SettingsSubPage titleKey="settings.accounts"><AccountsSettings /></SettingsSubPage> },
+              { path: "address-book", element: <SettingsSubPage titleKey="settings.addressBook"><AddressBookSettings /></SettingsSubPage> },
+              { path: "tokens", element: <SettingsSubPage titleKey="settings.tokens"><TokensSettings /></SettingsSubPage> },
+              { path: "about", element: <SettingsSubPage titleKey="settings.about"><SettingsAbout /></SettingsSubPage> },
             ],
           },
           { path: "*", element: <Navigate to="/" replace /> },
@@ -174,6 +165,7 @@ const router = createHashRouter([
 
 function Root() {
   useTheme();
+  useSyncLanguage();
   const hydrated = useHydrated();
   if (!hydrated) return <Splash />;
   return (

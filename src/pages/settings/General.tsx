@@ -4,7 +4,10 @@ import { AddressAvatar } from "@/components/AddressAvatar";
 import { Badge, Button, Card, CardHeader, Field, Select, Toggle } from "@/components/ui";
 import { useWallet } from "@/state/wallet";
 import { useT } from "@/i18n";
+import { extApi } from "@/lib/kv";
 import { useSettings, type Fiat, type Theme } from "@/state/settings";
+
+const sidePanelSupported = typeof (extApi() as unknown as { sidePanel?: unknown })?.sidePanel !== "undefined";
 
 export function GeneralSettings() {
   const t = useT();
@@ -56,6 +59,9 @@ export function GeneralSettings() {
           <div className="py-3"><Toggle checked={s.hideSmallBalances} onChange={(v) => s.set({ hideSmallBalances: v })} label={t("dashboard.hideSmall")} /></div>
           <div className="py-3"><Toggle checked={s.hideUnverified} onChange={(v) => s.set({ hideUnverified: v })} label={t("settings.hideUnverified")} description={t("settings.hideUnverifiedBody")} /></div>
           <div className="py-3"><Toggle checked={s.hideBalances} onChange={(v) => s.set({ hideBalances: v })} label={t("settings.privacy")} description={t("settings.privacyBody")} /></div>
+          {sidePanelSupported && (
+            <div className="py-3"><Toggle checked={s.sidePanel} onChange={(v) => s.set({ sidePanel: v })} label={t("settings.sidePanel")} description={t("settings.sidePanelBody")} /></div>
+          )}
         </div>
       </div>
     </Card>

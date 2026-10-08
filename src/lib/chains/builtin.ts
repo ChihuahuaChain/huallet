@@ -26,22 +26,6 @@ const osmo = {
   coinImageUrl: `${REGISTRY_IMG}/osmosis/images/osmo.png`,
 };
 
-const juno = {
-  coinDenom: "JUNO",
-  coinMinimalDenom: "ujuno",
-  coinDecimals: 6,
-  coinGeckoId: "juno-network",
-  coinImageUrl: `${REGISTRY_IMG}/juno/images/juno.png`,
-};
-
-const tia = {
-  coinDenom: "TIA",
-  coinMinimalDenom: "utia",
-  coinDecimals: 6,
-  coinGeckoId: "celestia",
-  coinImageUrl: `${REGISTRY_IMG}/celestia/images/celestia.png`,
-};
-
 export const CHIHUAHUA_CHAIN_ID = "chihuahua-1";
 
 export const BUILTIN_CHAINS: ChainInfo[] = [
@@ -99,44 +83,8 @@ export const BUILTIN_CHAINS: ChainInfo[] = [
     txExplorer: "https://www.mintscan.io/osmosis/tx/${txHash}",
     accountExplorer: "https://www.mintscan.io/osmosis/address/${accountAddress}",
   },
-  {
-    chainId: "juno-1",
-    chainName: "Juno",
-    registryName: "juno",
-    rpc: "https://rpc.cosmos.directory/juno",
-    rest: "https://rest.cosmos.directory/juno",
-    rpcFallbacks: ["https://juno-rpc.polkachu.com"],
-    restFallbacks: ["https://juno-api.polkachu.com"],
-    bip44: { coinType: 118 },
-    bech32Config: bech32ConfigFromPrefix("juno"),
-    currencies: [juno],
-    feeCurrencies: [{ ...juno, gasPriceStep: { low: 0.075, average: 0.1, high: 0.125 } }],
-    stakeCurrency: juno,
-    features: ["ibc-transfer", "ibc-go", "cosmwasm"],
-    chainSymbolImageUrl: juno.coinImageUrl,
-    txExplorer: "https://ping.pub/juno/tx/${txHash}",
-    accountExplorer: "https://ping.pub/juno/account/${accountAddress}",
-  },
-  {
-    chainId: "celestia",
-    chainName: "Celestia",
-    registryName: "celestia",
-    rpc: "https://rpc.cosmos.directory/celestia",
-    rest: "https://rest.cosmos.directory/celestia",
-    rpcFallbacks: ["https://celestia-rpc.publicnode.com:443"],
-    restFallbacks: ["https://celestia-rest.publicnode.com"],
-    bip44: { coinType: 118 },
-    bech32Config: bech32ConfigFromPrefix("celestia"),
-    currencies: [tia],
-    feeCurrencies: [{ ...tia, gasPriceStep: { low: 0.01, average: 0.02, high: 0.1 } }],
-    stakeCurrency: tia,
-    features: ["ibc-transfer", "ibc-go"],
-    chainSymbolImageUrl: tia.coinImageUrl,
-    txExplorer: "https://www.mintscan.io/celestia/tx/${txHash}",
-    accountExplorer: "https://www.mintscan.io/celestia/address/${accountAddress}",
-  },
 ];
 
-export const DEFAULT_ENABLED_CHAIN_IDS = [CHIHUAHUA_CHAIN_ID, "osmosis-1", "cosmoshub-4"];
+export const DEFAULT_ENABLED_CHAIN_IDS = [CHIHUAHUA_CHAIN_ID, "cosmoshub-4", "osmosis-1"];
 
 export const BUILTIN_CHAIN_IDS = new Set(BUILTIN_CHAINS.map((c) => c.chainId));

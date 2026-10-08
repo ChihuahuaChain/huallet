@@ -6,6 +6,7 @@ import { RouteError } from "@/components/RouteError";
 import { Toaster } from "@/components/Toaster";
 import { useHydrated } from "@/hooks/useHydrated";
 import { useTheme } from "@/hooks/useTheme";
+import { useSyncLanguage } from "@/i18n";
 import { Mascot } from "@/components/Logo";
 import { useEnabledChains, useSelectedChain } from "@/state/chains";
 import { connectWallet, rememberedWallet } from "@/lib/wallet/connect";
@@ -102,6 +103,7 @@ const router = createHashRouter([
 
 function Root() {
   useTheme();
+  useSyncLanguage();
   const hydrated = useHydrated();
   if (!hydrated) return null;
   return (

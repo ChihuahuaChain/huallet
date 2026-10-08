@@ -83,7 +83,13 @@ const base = {
 };
 
 const manifests = {
-  chrome: { ...base, background: { service_worker: "background.js" }, minimum_chrome_version: "111" },
+  chrome: {
+    ...base,
+    permissions: [...base.permissions, "sidePanel"],
+    background: { service_worker: "background.js" },
+    side_panel: { default_path: "popup.html?view=sidepanel" },
+    minimum_chrome_version: "114",
+  },
   firefox: {
     ...base,
     background: { scripts: ["background.js"] },

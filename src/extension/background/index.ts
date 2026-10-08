@@ -39,6 +39,51 @@ api.alarms.onAlarm.addListener((a) => {
   if (a.name === "autolock") void core.checkAutoLock();
 });
 
+// Side panel (Chrome/Edge only — Firefox has no chrome.sidePanel). Mirrors the
+// user's General → "Side panel" setting: when on, clicking the toolbar icon
+// docks the wallet as a side panel instead of a transient popup, the way Keplr
+// does. Default on. The approval prompt stays a focused popup window regardless.
+const SETTINGS_KEY = "huallet:settings";
+const sidePanel = (api as unknown as { sidePanel?: typeof chrome.sidePanel }).sidePanel;
+
+async function applySidePanel(enabled: boolean) {
+  if (!sidePanel) return;
+  try {
+    if (enabled) {
+      await sidePanel.setOptions({ path: "popup.html?view=sidepanel", enabled: true });
+      await sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+      await api.action.setPopup({ popup: "" });
+    } else {
+      await api.action.setPopup({ popup: "popup.html?view=popup" });
+      await sidePanel.setPanelBehavior({ openPanelOnActionClick: false });
+      await sidePanel.setOptions({ enabled: false });
+    }
+  } catch {
+    // Leave the toolbar action at whatever the manifest default is.
+  }
+}
+
+async function sidePanelPref(): Promise<boolean> {
+  try {
+    const raw = (await api.storage.local.get(SETTINGS_KEY))[SETTINGS_KEY];
+    if (typeof raw === "string") {
+      const v = (JSON.parse(raw) as { state?: { sidePanel?: unknown } }).state?.sidePanel;
+      if (typeof v === "boolean") return v;
+    }
+  } catch {
+    // No stored preference yet — fall back to the store's default.
+  }
+  return true;
+}
+
+const refreshSidePanel = () => void sidePanelPref().then(applySidePanel);
+refreshSidePanel();
+api.runtime.onInstalled.addListener(refreshSidePanel);
+api.runtime.onStartup.addListener(refreshSidePanel);
+api.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes[SETTINGS_KEY]) refreshSidePanel();
+});
+
 api.windows.onRemoved.addListener((windowId) => core.approvalClosed(windowId));
 
 api.runtime.onConnect.addListener((port) => {
