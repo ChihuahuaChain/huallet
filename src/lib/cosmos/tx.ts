@@ -13,6 +13,8 @@ import {
 import { BinaryReader } from "cosmjs-types/binary";
 import { BaseAccount } from "cosmjs-types/cosmos/auth/v1beta1/auth";
 import { VoteOption as ProtoVoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
+import { GenericAuthorization } from "cosmjs-types/cosmos/authz/v1beta1/authz";
+import { AuthorizationType, StakeAuthorization } from "cosmjs-types/cosmos/staking/v1beta1/authz";
 import type { Any } from "cosmjs-types/google/protobuf/any";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import type { ChainInfo, FeeCurrency } from "../chains/types";
@@ -158,6 +160,17 @@ export async function signAndBroadcast(
 
 export { feeCurrencyOf };
 
+const MSG_DELEGATE = "/cosmos.staking.v1beta1.MsgDelegate";
+const MSG_WITHDRAW_REWARD = "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward";
+const MSG_GRANT = "/cosmos.authz.v1beta1.MsgGrant";
+const MSG_REVOKE = "/cosmos.authz.v1beta1.MsgRevoke";
+
+/** REStake grants expire after one year, matching the restake.app / Leap default. */
+export const RESTAKE_GRANT_DURATION_SECONDS = 365 * 24 * 60 * 60;
+
+/** The two message type URLs an auto-compound (REStake) grant authorizes a validator's bot to send. */
+export const RESTAKE_GRANTED_MSGS = [MSG_DELEGATE, MSG_WITHDRAW_REWARD] as const;
+
 export const msg = {
   send(from: string, to: string, denom: string, amount: bigint): EncodeObject {
     return {
@@ -201,9 +214,50 @@ export const msg = {
   },
   withdrawRewards(delegator: string, validator: string): EncodeObject {
     return {
-      typeUrl: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+      typeUrl: MSG_WITHDRAW_REWARD,
       value: { delegatorAddress: delegator, validatorAddress: validator },
     };
+  },
+  /**
+   * "Claim & Restake" on the user's own signature: withdraw the pending reward from a
+   * validator, then delegate `amount` of it back. The withdraw runs first, crediting the
+   * reward to the account balance the delegate then spends.
+   */
+  claimAndRestake(delegator: string, validator: string, denom: string, amount: bigint): EncodeObject[] {
+    return [this.withdrawRewards(delegator, validator), this.delegate(delegator, validator, denom, amount)];
+  },
+  /**
+   * Auto-compound (REStake): authorize a validator's bot (`grantee`) to claim and re-delegate
+   * rewards for `validator` on the granter's behalf. Emits two MsgGrant: a StakeAuthorization
+   * restricted to delegating to `validator`, and a generic grant to withdraw rewards. The grant
+   * expires at `expirationEpochSeconds` and carries no spend limit, mirroring restake.app.
+   */
+  grantRestake(granter: string, grantee: string, validator: string, expirationEpochSeconds: number): EncodeObject[] {
+    const expiration = { seconds: BigInt(Math.floor(expirationEpochSeconds)), nanos: 0 };
+    const stakeAuth: Any = {
+      typeUrl: StakeAuthorization.typeUrl,
+      value: StakeAuthorization.encode(
+        StakeAuthorization.fromPartial({
+          authorizationType: AuthorizationType.AUTHORIZATION_TYPE_DELEGATE,
+          allowList: { address: [validator] },
+        }),
+      ).finish(),
+    };
+    const withdrawAuth: Any = {
+      typeUrl: "/cosmos.authz.v1beta1.GenericAuthorization",
+      value: GenericAuthorization.encode(GenericAuthorization.fromPartial({ msg: MSG_WITHDRAW_REWARD })).finish(),
+    };
+    return [stakeAuth, withdrawAuth].map((authorization) => ({
+      typeUrl: MSG_GRANT,
+      value: { granter, grantee, grant: { authorization, expiration } },
+    }));
+  },
+  /** Turn auto-compound off: revoke both grants previously given to the validator's bot. */
+  revokeRestake(granter: string, grantee: string): EncodeObject[] {
+    return RESTAKE_GRANTED_MSGS.map((msgTypeUrl) => ({
+      typeUrl: MSG_REVOKE,
+      value: { granter, grantee, msgTypeUrl },
+    }));
   },
   vote(voter: string, proposalId: string, option: VoteOption): EncodeObject {
     const map: Record<VoteOption, ProtoVoteOption> = {
@@ -243,7 +297,7 @@ export const msg = {
 };
 
 export interface MsgSummary {
-  kind: "send" | "cw20-send" | "delegate" | "undelegate" | "redelegate" | "claim" | "vote" | "ibc" | "swap" | "curve-buy" | "curve-sell" | "contract-execute" | "unknown";
+  kind: "send" | "cw20-send" | "delegate" | "undelegate" | "redelegate" | "claim" | "grant" | "revoke" | "vote" | "ibc" | "swap" | "curve-buy" | "curve-sell" | "contract-execute" | "unknown";
   typeUrl: string;
   fields: Record<string, string>;
   coins?: Array<{ denom: string; amount: string }>;
@@ -303,6 +357,13 @@ export function summarize(m: EncodeObject): MsgSummary {
       };
     case "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward":
       return { kind: "claim", typeUrl: m.typeUrl, fields: { validator: String(v.validatorAddress) } };
+    case "/cosmos.authz.v1beta1.MsgGrant": {
+      const grant = v.grant as { authorization?: { typeUrl?: string } } | undefined;
+      const authz = grant?.authorization?.typeUrl === StakeAuthorization.typeUrl ? "restake-delegate" : "restake-withdraw";
+      return { kind: "grant", typeUrl: m.typeUrl, fields: { grantee: String(v.grantee), authz } };
+    }
+    case "/cosmos.authz.v1beta1.MsgRevoke":
+      return { kind: "revoke", typeUrl: m.typeUrl, fields: { grantee: String(v.grantee), msg: String(v.msgTypeUrl) } };
     case "/cosmos.gov.v1beta1.MsgVote":
       return { kind: "vote", typeUrl: m.typeUrl, fields: { proposal: String(v.proposalId), option: String(v.option) } };
     case "/ibc.applications.transfer.v1.MsgTransfer":
