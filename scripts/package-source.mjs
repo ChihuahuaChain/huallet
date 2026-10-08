@@ -11,7 +11,7 @@ const include = [
   "src", "public", "scripts", "e2e/extension.e2e.mjs", "e2e/ledger.e2e.mjs", "extension-assets",
   "index.html", "popup.html", "package.json", "package-lock.json",
   "tsconfig.json", "tsconfig.app.json", "tsconfig.node.json", "vite.config.ts",
-  "README.md", "LICENSE", "NOTICE", "TRADEMARKS.md", "PRIVACY.md", ".gitignore", "docs",
+  "LICENSE", "NOTICE", "TRADEMARKS.md", "PRIVACY.md", ".gitignore", "docs",
 ];
 
 const stage = mkdtempSync(join(tmpdir(), "huallet-src-"));
