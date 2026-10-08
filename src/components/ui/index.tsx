@@ -250,12 +250,19 @@ export function Modal({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  // Keep the latest callbacks in refs so the focus effect depends only on `open`. Otherwise a
+  // parent that re-renders on every keystroke (passing a new inline onClose) would re-run this
+  // effect and yank focus from the input back to the dialog on each character.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const dismissableRef = useRef(dismissable);
+  dismissableRef.current = dismissable;
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
     ref.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && dismissable) onClose();
+      if (e.key === "Escape" && dismissableRef.current) onCloseRef.current();
     };
     document.addEventListener("keydown", onKey);
     const overflow = document.body.style.overflow;
@@ -265,7 +272,7 @@ export function Modal({
       document.body.style.overflow = overflow;
       prev?.focus?.();
     };
-  }, [open, onClose, dismissable]);
+  }, [open]);
 
   if (!open) return null;
   const width = { sm: "max-w-sm", md: "max-w-lg", lg: "max-w-2xl" }[size];
