@@ -10,6 +10,7 @@ import {
   useApr,
   useBalanceOf,
   useDelegations,
+  useValidatorLogos,
   usePrices,
   useRewards,
   useStakingInfo,
@@ -24,6 +25,25 @@ import { formatDateTime, formatPercent, fromBaseUnits, timeUntil, toBaseUnits, t
 import { useAllChains } from "@/state/chains";
 
 type Mode = "delegate" | "undelegate" | "redelegate";
+
+/** A validator's registry logo, falling back to a monogram when missing or it fails to load. */
+function ValidatorAvatar({ moniker, logo, size = 36 }: { moniker: string; logo?: string; size?: number }) {
+  const [broken, setBroken] = useState(false);
+  if (logo && !broken) {
+    return (
+      <img
+        src={logo}
+        alt=""
+        loading="lazy"
+        draggable={false}
+        onError={() => setBroken(true)}
+        style={{ width: size, height: size }}
+        className="shrink-0 rounded-full bg-surface-2 object-cover"
+      />
+    );
+  }
+  return <Monogram text={moniker} size={size} />;
+}
 
 function safeUrl(u?: string): string | undefined {
   if (!u) return undefined;
@@ -53,6 +73,7 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
   const cur = stakeCurrencyOf(chain);
   const address = useAddress(chain);
   const validators = useValidators(chain);
+  const logos = useValidatorLogos(chain);
   const delegations = useDelegations(chain, address);
   const rewards = useRewards(chain, address);
   const unbondings = useUnbondings(chain, address);
@@ -158,7 +179,7 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
             const r = rewardOf(d.delegation.validator_address);
             return (
               <div key={d.delegation.validator_address} className="flex flex-wrap items-center gap-3 px-3 py-3">
-                <Monogram text={v?.description.moniker ?? "?"} />
+                <ValidatorAvatar moniker={v?.description.moniker ?? "?"} logo={logos.data?.[d.delegation.validator_address]} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 font-semibold">
                     <span className="truncate">{v?.description.moniker ?? d.delegation.validator_address}</span>
@@ -226,7 +247,7 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
             return (
               <div key={v.operator_address} className="flex items-center gap-3 px-3 py-3">
                 <span className="w-7 text-right text-xs text-muted tabular">{r ?? "—"}</span>
-                <Monogram text={v.description.moniker} />
+                <ValidatorAvatar moniker={v.description.moniker} logo={logos.data?.[v.operator_address]} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="truncate font-semibold">{v.description.moniker}</span>

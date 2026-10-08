@@ -216,6 +216,23 @@ export async function getAllValidators(chain: ChainInfo): Promise<Validator[]> {
   return r.validators;
 }
 
+/**
+ * Validator logos (valoper → image URL) from the public validator registry (cosmos.directory).
+ * Validators without a logo are simply absent; callers fall back to initials.
+ */
+export async function getValidatorLogos(registrySlug: string): Promise<Record<string, string>> {
+  const r = await fetchJson<{ validators?: Array<{ operator_address?: string; image?: string; keybase_image?: string }> }>(
+    `https://validators.cosmos.directory/chains/${enc(registrySlug)}`,
+    15_000,
+  );
+  const out: Record<string, string> = {};
+  for (const v of r.validators ?? []) {
+    const img = v.image ?? v.keybase_image;
+    if (v.operator_address && img && img.startsWith("https://")) out[v.operator_address] = img;
+  }
+  return out;
+}
+
 export async function getDelegations(chain: ChainInfo, address: string): Promise<Delegation[]> {
   try {
     const r = await restGet<{ delegation_responses: Delegation[] }>(

@@ -15,6 +15,7 @@ import {
   getStakingApr,
   getStakingInfo,
   getUnbondings,
+  getValidatorLogos,
 } from "@/lib/cosmos/rest";
 import { allChains, useChainsStore, useEnabledChains } from "@/state/chains";
 import { useSettings } from "@/state/settings";
@@ -141,6 +142,17 @@ export function useValidators(chain: ChainInfo) {
     queryKey: ["validators", chain.chainId],
     queryFn: () => getAllValidators(chain),
     staleTime: 5 * MIN,
+  });
+}
+
+export function useValidatorLogos(chain: ChainInfo) {
+  return useQuery({
+    queryKey: ["validator-logos", chain.registryName],
+    queryFn: () => getValidatorLogos(chain.registryName!),
+    enabled: !!chain.registryName,
+    staleTime: 6 * 60 * MIN,
+    gcTime: 12 * 60 * MIN,
+    retry: false,
   });
 }
 
