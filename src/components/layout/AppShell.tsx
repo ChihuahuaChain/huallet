@@ -192,7 +192,7 @@ export function AppShell({ menu = <WalletMenu />, compact = false }: { menu?: Re
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-surface lg:flex">
         <div className="px-5 py-6">
           <Link to="/" aria-label="Huallet" className="flex justify-center">
-            <Logo size={72} stacked />
+            <Logo size={144} stacked />
           </Link>
         </div>
         <nav className="flex-1 space-y-0.5 px-3" aria-label="Main">

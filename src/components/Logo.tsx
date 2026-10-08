@@ -80,7 +80,7 @@ export function Logo({
     <div className={cx("flex gap-2", stacked ? "flex-col items-center" : "items-center", className)}>
       <Mascot size={size} />
       {withText && (
-        <span className={cx("font-display font-bold tracking-tight", stacked ? "text-2xl" : "text-xl")}>
+        <span className={cx("font-display font-bold tracking-tight", stacked ? "text-3xl" : "text-xl")}>
           Hua<span className="text-rust">llet</span>
         </span>
       )}
