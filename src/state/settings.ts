@@ -17,7 +17,13 @@ export interface SettingsState {
   hideBalances: boolean;
   /** Chrome/Edge: show the wallet as a docked side panel instead of a popup. */
   sidePanel: boolean;
-  set: (patch: Partial<Omit<SettingsState, "set">>) => void;
+  /** Desktop only: show the rotating ecosystem promo cards on the dashboard. */
+  showPromotions: boolean;
+  /** Ids of promo cards the user dismissed with the X; they never reappear. */
+  dismissedPromos: string[];
+  set: (patch: Partial<Omit<SettingsState, "set" | "setShowPromotions">>) => void;
+  /** Turning promotions back on also restores every card the user had dismissed. */
+  setShowPromotions: (on: boolean) => void;
 }
 
 export const useSettings = create<SettingsState>()(
@@ -32,7 +38,10 @@ export const useSettings = create<SettingsState>()(
       hideUnverified: false,
       hideBalances: false,
       sidePanel: true,
+      showPromotions: true,
+      dismissedPromos: [],
       set: (patch) => set(patch),
+      setShowPromotions: (on) => set(on ? { showPromotions: true, dismissedPromos: [] } : { showPromotions: false }),
     }),
     { name: "huallet:settings", version: 1, storage: createJSONStorage(() => appStateStorage) },
   ),

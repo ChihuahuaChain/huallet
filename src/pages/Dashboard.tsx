@@ -1,16 +1,17 @@
-import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Coins, Eye, EyeOff, Gift, Lock, Search, Repeat } from "lucide-react";
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Coins, Eye, EyeOff, Gift, Lock, Search, Repeat, ShieldQuestion } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Amount, Fiat } from "@/components/Amount";
+import { Amount, Fiat, MASK } from "@/components/Amount";
 import { PageHeader } from "@/components/layout/AppShell";
 import { requestTx } from "@/components/TxModal";
 import { Badge, Button, Card, CardHeader, EmptyState, Input, Skeleton, TokenIcon, Toggle, cx } from "@/components/ui";
 import { Mascot } from "@/components/Logo";
+import { PromoCards } from "@/components/PromoCards";
 import { usePortfolio, usePrices } from "@/hooks/queries";
 import { useStakingOverview, type ChainStaking } from "@/hooks/useStakingOverview";
-import { useT } from "@/i18n";
+import { useLocale, useT } from "@/i18n";
 import { stakeCurrencyOf } from "@/lib/chains/types";
-import { toNumber } from "@/lib/format";
+import { formatFiat, toNumber } from "@/lib/format";
 import { msg } from "@/lib/cosmos/tx";
 import { useChainsStore, useEnabledChains } from "@/state/chains";
 import { assetKey, useHiddenAssets } from "@/state/hiddenAssets";
@@ -39,8 +40,9 @@ function Stat({ label, children, icon }: { label: string; children: React.ReactN
 
 export function Dashboard() {
   const t = useT();
+  const locale = useLocale();
   const navigate = useNavigate();
-  const { hideSmallBalances, hideUnverified, set, showPrices } = useSettings();
+  const { fiat, hideBalances, hideSmallBalances, hideUnverified, set, showPrices } = useSettings();
   const { hidden, hide, unhide } = useHiddenAssets();
   const [showHidden, setShowHidden] = useState(false);
   const selectChain = useChainsStore((s) => s.selectChain);
@@ -76,6 +78,14 @@ export function Dashboard() {
   const available = rows.reduce((s, r) => s + (r.value ?? 0), 0);
   const total = available + totals.staked + totals.rewards + totals.unbonding;
   const loading = portfolio.some((p) => p.isLoading);
+  // The headline total is formatted once here, both to render it and to shrink the font as the
+  // string gets longer so a big number never overflows the hero.
+  const totalStr = !showPrices || Number.isNaN(total) ? "—" : hideBalances ? MASK : formatFiat(total, fiat, locale);
+  const totalSize =
+    totalStr.length > 21 ? "text-xl sm:text-2xl"
+    : totalStr.length > 17 ? "text-2xl sm:text-3xl"
+    : totalStr.length > 13 ? "text-3xl sm:text-4xl"
+    : "text-4xl sm:text-5xl";
 
   const q = query.trim().toLowerCase();
   const hiddenSet = new Set(hidden);
@@ -92,7 +102,7 @@ export function Dashboard() {
   const renderAsset = ({ chain, b, value }: (typeof filtered)[number], isHiddenRow: boolean) => {
     const key = assetKey(chain.chainId, b.denom);
     return (
-      <div key={key} className={cx("group flex items-center rounded-xl pr-1.5 hover:bg-surface-2", isHiddenRow && "opacity-60")}>
+      <div key={key} className={cx("group flex min-w-0 items-center rounded-xl pr-1.5 hover:bg-surface-2", isHiddenRow && "opacity-60")}>
         <button
           onClick={() => {
             selectChain(chain.chainId);
@@ -104,15 +114,26 @@ export function Dashboard() {
             <TokenIcon src={b.asset.coinImageUrl} symbol={b.asset.coinDenom} />
             <TokenIcon src={chain.chainSymbolImageUrl} symbol={chain.chainName} size={16} className="absolute -bottom-0.5 -right-0.5 ring-2 ring-surface" />
           </div>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 overflow-hidden">
             <div className="flex min-w-0 items-center gap-1.5 font-semibold">
               <span className="truncate">{b.asset.coinDenom}</span>
               {!b.asset.verified && b.asset.bridged && <Badge tone="neutral" className="shrink-0">{t("assets.ibc")}</Badge>}
-              {!b.asset.verified && !b.asset.bridged && <Badge tone="warning" className="shrink-0">{t("assets.unverified")}</Badge>}
+              {/* "Unverified" is long: the text badge where there's room (sm+), a compact icon in the
+                  narrow popup / side panel so the token name and amount keep their space. */}
+              {!b.asset.verified && !b.asset.bridged && (
+                <>
+                  <Badge tone="warning" className="hidden shrink-0 sm:inline-flex">{t("assets.unverified")}</Badge>
+                  <span className="shrink-0 text-warning sm:hidden" title={t("assets.unverified")} aria-label={t("assets.unverified")}>
+                    <ShieldQuestion className="size-4" />
+                  </span>
+                </>
+              )}
             </div>
             <div className="truncate text-xs text-muted">{chain.chainName}</div>
           </div>
-          <div className="min-w-0 max-w-[55%] text-right">
+          {/* The amount gives way first (shrink-[4]) down to a 72px floor, so an absurd spam balance
+              truncates instead of crushing the name or overlapping the badge. */}
+          <div className="min-w-[72px] max-w-[40%] shrink-[4] text-right">
             <Amount amount={b.amount} decimals={b.asset.coinDecimals} className="block truncate font-semibold" />
             <div className="truncate text-xs text-muted"><Fiat value={value} /></div>
           </div>
@@ -134,10 +155,9 @@ export function Dashboard() {
       <PageHeader title={t("dashboard.title")} subtitle={t("dashboard.subtitle")} />
 
       <section className="paw-bg relative overflow-hidden rounded-3xl bg-huahua-300 p-6 text-ink shadow-card sm:p-8 dark:bg-surface dark:text-fg">
-        <Mascot size={152} className="pointer-events-none absolute -right-4 -top-4 hidden rotate-12 opacity-90 sm:block" />
         <div className="text-sm font-medium text-ink/70 dark:text-muted">{t("dashboard.total")}</div>
-        <div className="mt-1 font-display text-4xl font-bold sm:text-5xl">
-          {showPrices ? loading && total === 0 ? <Skeleton className="h-12 w-48 bg-ink/10" /> : <Fiat value={total} /> : "—"}
+        <div className={cx("mt-1 font-display font-bold", totalSize)}>
+          {showPrices && loading && total === 0 ? <Skeleton className="h-12 w-48 bg-ink/10" /> : <span className="tabular">{totalStr}</span>}
         </div>
         <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Stat label={t("dashboard.available")} icon={<Coins className="size-3.5" />}><Fiat value={available} /></Stat>
@@ -154,8 +174,10 @@ export function Dashboard() {
         </div>
       </section>
 
+      <PromoCards />
+
       <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-        <Card>
+        <Card className="min-w-0">
           <CardHeader
             title={t("dashboard.assets")}
             action={
@@ -165,7 +187,7 @@ export function Dashboard() {
             }
           />
           <div className="px-5 pt-2">
-            <Toggle checked={hideSmallBalances} onChange={(v) => set({ hideSmallBalances: v })} label={<span className="text-xs text-muted">{t("dashboard.hideSmall")}</span>} />
+            <Toggle checked={hideSmallBalances} onChange={(v) => set({ hideSmallBalances: v })} label={<span className="text-xs text-muted">{t("dashboard.hideSmall", { currency: fiat.toUpperCase() })}</span>} />
           </div>
           <div className="divide-y divide-line px-2 pb-2">
             {loading && rows.length === 0 &&

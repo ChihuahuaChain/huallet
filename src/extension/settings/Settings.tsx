@@ -14,6 +14,7 @@ import {
   Info,
   KeyRound,
   Languages,
+  Megaphone,
   Network,
   Palette,
   PanelRight,
@@ -32,6 +33,7 @@ import { WrongPasswordError } from "@/lib/crypto/vault";
 import { useSettings, type Fiat, type Theme } from "@/state/settings";
 import { version } from "../../../package.json";
 import { keyring } from "../popup/keyring";
+import { isMobileView } from "../popup/view";
 import { PasswordPrompt } from "../PasswordPrompt";
 import { useSelectedKey } from "../state/keyringStore";
 import { BiometricCard } from "./Security";
@@ -161,9 +163,12 @@ export function SettingsHome() {
           <Row icon={<PanelRight className={icon} />} label={t("settings.sidePanel")} control={<Switch checked={s.sidePanel} onChange={(v) => s.set({ sidePanel: v })} aria-label={t("settings.sidePanel")} />} />
         )}
         <Row icon={<Tag className={icon} />} label={t("settings.prices")} control={<Switch checked={s.showPrices} onChange={(v) => s.set({ showPrices: v })} aria-label={t("settings.prices")} />} />
-        <Row icon={<Filter className={icon} />} label={t("dashboard.hideSmall")} control={<Switch checked={s.hideSmallBalances} onChange={(v) => s.set({ hideSmallBalances: v })} aria-label={t("dashboard.hideSmall")} />} />
+        <Row icon={<Filter className={icon} />} label={t("dashboard.hideSmall", { currency: s.fiat.toUpperCase() })} control={<Switch checked={s.hideSmallBalances} onChange={(v) => s.set({ hideSmallBalances: v })} aria-label={t("dashboard.hideSmall", { currency: s.fiat.toUpperCase() })} />} />
         <Row icon={<ShieldQuestion className={icon} />} label={t("settings.hideUnverified")} control={<Switch checked={s.hideUnverified} onChange={(v) => s.set({ hideUnverified: v })} aria-label={t("settings.hideUnverified")} />} />
         <Row icon={<EyeOff className={icon} />} label={t("settings.privacy")} control={<Switch checked={s.hideBalances} onChange={(v) => s.set({ hideBalances: v })} aria-label={t("settings.privacy")} />} />
+        {!isMobileView() && (
+          <Row icon={<Megaphone className={icon} />} label={t("settings.promotions")} control={<Switch checked={s.showPromotions} onChange={s.setShowPromotions} aria-label={t("settings.promotions")} />} />
+        )}
       </Section>
 
       <BiometricCard />

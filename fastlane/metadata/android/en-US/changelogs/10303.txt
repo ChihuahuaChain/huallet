@@ -1,0 +1,1 @@
+- Dashboard: dismissible cards with news and highlights from the Chihuahua ecosystem; turn them on or off under Settings → Show news

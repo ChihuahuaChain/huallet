@@ -169,7 +169,7 @@ export function Switch({ checked, onChange, id, "aria-label": ariaLabel }: { che
       aria-checked={checked}
       aria-label={ariaLabel}
       onClick={() => onChange(!checked)}
-      className={cx("relative h-6 w-11 shrink-0 rounded-full transition-colors", checked ? "bg-rust" : "bg-line")}
+      className={cx("relative h-6 w-11 shrink-0 rounded-full transition-colors", checked ? "bg-rust" : "bg-black/20 dark:bg-white/25")}
     >
       <span className={cx("absolute top-0.5 size-5 rounded-full bg-white shadow transition-all", checked ? "left-[22px]" : "left-0.5")} />
     </button>

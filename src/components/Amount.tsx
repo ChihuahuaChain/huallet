@@ -3,7 +3,8 @@ import { useLocale } from "@/i18n";
 import { useSettings } from "@/state/settings";
 import { cx } from "./ui";
 
-const MASK = "••••";
+/** Placeholder shown in place of any balance while privacy mode is on. */
+export const MASK = "••••";
 
 export function Amount({
   amount,

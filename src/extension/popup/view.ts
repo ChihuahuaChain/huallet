@@ -11,3 +11,7 @@ export const isPopupView = () => extView() === "popup";
  * full browser tab. Flows that need a persistent tab (WebHID/Ledger, seed
  * backup breathing room) key off this. */
 export const isFullTab = () => extView() === "tab";
+
+/** True on the Android (Capacitor) build, which sets data-view="mobile" at boot
+ * (src/mobile/main.tsx). The single source of truth for "is this the mobile app?". */
+export const isMobileView = () => typeof document !== "undefined" && document.documentElement.dataset.view === "mobile";

@@ -38,7 +38,7 @@ import { Approve } from "./Approve";
 import { bg } from "./background";
 import { localBackend } from "./backend";
 import { ConnectedSites } from "./ConnectedSites";
-import { extView, isPopupView } from "./view";
+import { extView, isMobileView, isPopupView } from "./view";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 2, refetchOnWindowFocus: false, staleTime: 20_000 } },
@@ -115,7 +115,7 @@ function Gate() {
   return <Outlet />;
 }
 
-const compact = extView() !== "tab" || document.documentElement.dataset.view === "mobile";
+const compact = extView() !== "tab" || isMobileView();
 
 const router = createHashRouter([
   {

@@ -56,9 +56,10 @@ export function GeneralSettings() {
         </div>
         <div className="divide-y divide-line">
           <div className="py-3"><Toggle checked={s.showPrices} onChange={(v) => s.set({ showPrices: v })} label={t("settings.prices")} description={t("settings.pricesBody")} /></div>
-          <div className="py-3"><Toggle checked={s.hideSmallBalances} onChange={(v) => s.set({ hideSmallBalances: v })} label={t("dashboard.hideSmall")} /></div>
+          <div className="py-3"><Toggle checked={s.hideSmallBalances} onChange={(v) => s.set({ hideSmallBalances: v })} label={t("dashboard.hideSmall", { currency: s.fiat.toUpperCase() })} /></div>
           <div className="py-3"><Toggle checked={s.hideUnverified} onChange={(v) => s.set({ hideUnverified: v })} label={t("settings.hideUnverified")} description={t("settings.hideUnverifiedBody")} /></div>
           <div className="py-3"><Toggle checked={s.hideBalances} onChange={(v) => s.set({ hideBalances: v })} label={t("settings.privacy")} description={t("settings.privacyBody")} /></div>
+          <div className="py-3"><Toggle checked={s.showPromotions} onChange={s.setShowPromotions} label={t("settings.promotions")} description={t("settings.promotionsBody")} /></div>
           {sidePanelSupported && (
             <div className="py-3"><Toggle checked={s.sidePanel} onChange={(v) => s.set({ sidePanel: v })} label={t("settings.sidePanel")} description={t("settings.sidePanelBody")} /></div>
           )}
