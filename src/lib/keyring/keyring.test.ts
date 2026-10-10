@@ -80,7 +80,7 @@ describe("keyring", () => {
 describe("ledger accounts", () => {
   it("derive addresses from the stored public key, never sign locally", async () => {
     const { Secp256k1HdWallet } = await import("@cosmjs/amino");
-    const { toHex } = await import("@cosmjs/encoding");
+    const { fromBech32, toBech32, toHex } = await import("@cosmjs/encoding");
     const probe = await Secp256k1HdWallet.fromMnemonic(ABANDON);
     const pubkey = toHex((await probe.getAccounts())[0].pubkey);
 
@@ -92,8 +92,10 @@ describe("ledger accounts", () => {
     await expect(keyring.getDirectSigner(k.id, hub)).rejects.toThrow(/Ledger/);
     await expect(keyring.getAminoSigner(k.id, hub)).rejects.toThrow(/Ledger/);
     await expect(keyring.revealSecret(k.id, "password-123")).rejects.toThrow(/no secret/);
-    const evm = { ...hub, chainId: "evm-1", bip44: { coinType: 60 } };
-    await expect(keyring.getAccount(k.id, evm)).rejects.toThrow(/not supported/);
+    const provenance = { ...hub, chainId: "pio-mainnet-1", bip44: { coinType: 505 }, bech32Config: { ...hub.bech32Config, bech32PrefixAccAddr: "pb" } };
+    expect(await keyring.getAddress(k.id, provenance)).toBe(toBech32("pb", fromBech32("cosmos19rl4cm2hmr8afy4kldpxz3fka4jguq0auqdal4").data));
+    const evm = { ...hub, chainId: "evm-1", bip44: { coinType: 60 }, features: ["eth-address-gen", "eth-key-sign"] };
+    await expect(keyring.getAccount(k.id, evm)).rejects.toThrow(/does not support/);
     await expect(keyring.addKey({ name: "bad", type: "ledger", secret: "04" + "ab".repeat(32) })).rejects.toThrow(/Invalid Ledger/);
   });
 });

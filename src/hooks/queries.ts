@@ -59,8 +59,8 @@ export function useAddresses(chains: ChainInfo[]): Record<string, string | undef
 
 /**
  * Enabled chains split by whether the active account can hold an address on them. A Ledger
- * account in the extension only covers coin type 118, so e.g. Secret or Injective land in
- * `unsupported` and are left out of the multi-chain views instead of loading forever.
+ * account in the extension can't sign for Ethermint chains, so e.g. Injective or Dymension land
+ * in `unsupported` and are left out of the multi-chain views instead of loading forever.
  */
 export function useAccountChains(): { chains: ChainInfo[]; unsupported: ChainInfo[] } {
   const enabled = useEnabledChains();

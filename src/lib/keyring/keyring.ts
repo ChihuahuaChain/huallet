@@ -87,8 +87,14 @@ export class LedgerKeyError extends Error {
 
 export const LEDGER_COIN_TYPE = 118;
 
+/**
+ * A Ledger account holds one Cosmos-app key (44'/118'/…) and uses it on every secp256k1 chain,
+ * whatever that chain's registered coin type. This is the common wallet convention, so a
+ * Ledger shows the same address on e.g. Secret or Provenance across wallets. The Cosmos app
+ * accepts any non-reserved HRP on the 118' path. Ethermint chains need the Ethereum app.
+ */
 export function ledgerSupportsChain(chain: ChainInfo): boolean {
-  return chain.bip44.coinType === LEDGER_COIN_TYPE && keyAlgoOf(chain) === "secp256k1";
+  return keyAlgoOf(chain) === "secp256k1";
 }
 
 export function isValidCompressedPubkey(hex: string): boolean {
@@ -411,7 +417,7 @@ export class Keyring {
     const k = await this.stored(keyId);
     if (k.type === "ledger") {
       if (!ledgerSupportsChain(chain)) {
-        throw new LedgerKeyError(`${chain.chainName} (coin type ${chain.bip44.coinType}) is not supported by the Ledger Cosmos app`);
+        throw new LedgerKeyError(`${chain.chainName} uses Ethereum-style keys, which the Ledger Cosmos app does not support`);
       }
       const pubkey = fromHex(k.secret);
       return { address: toBech32(chain.bech32Config.bech32PrefixAccAddr, rawSecp256k1PubkeyToRawAddress(pubkey)), algo: "secp256k1", pubkey };
