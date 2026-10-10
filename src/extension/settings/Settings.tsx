@@ -14,6 +14,7 @@ import {
   Info,
   KeyRound,
   Languages,
+  Lock,
   Megaphone,
   Network,
   Palette,
@@ -174,6 +175,14 @@ export function SettingsHome() {
       <BiometricCard />
 
       <Section title={t("settings.sectionSecurity")}>
+        <Row
+          icon={<Lock className={icon} />}
+          label={t("shell.lock")}
+          onClick={async () => {
+            qc.clear();
+            await keyring.lock();
+          }}
+        />
         <Row icon={<KeyRound className={icon} />} label={t("security.changePassword")} to="/settings/password" />
         <Row
           icon={<Clock className={icon} />}

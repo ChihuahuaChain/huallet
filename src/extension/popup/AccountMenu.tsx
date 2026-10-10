@@ -1,5 +1,4 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ExternalLink, Lock, Maximize2, Plus, ShieldAlert, Usb, UserCog } from "lucide-react";
+import { ChevronDown, ExternalLink, Maximize2, Plus, ShieldAlert, Usb, UserCog } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AddressAvatar } from "@/components/AddressAvatar";
 import { Popover } from "@/components/layout/AppShell";
@@ -11,13 +10,11 @@ import { shortAddress } from "@/lib/format";
 import { extApi } from "@/lib/kv";
 import { useSelectedChain } from "@/state/chains";
 import { useKeyring, useSelectedKey } from "../state/keyringStore";
-import { keyring } from "./keyring";
 import { isPopupView } from "./view";
 
 export function AccountMenu() {
   const t = useT();
   const navigate = useNavigate();
-  const qc = useQueryClient();
   const keys = useKeyring((s) => s.keys);
   const selectKey = useKeyring((s) => s.selectKey);
   const current = useSelectedKey();
@@ -31,7 +28,7 @@ export function AccountMenu() {
         trigger={(open) => (
           <button className="flex min-w-0 max-w-full items-center gap-1.5 rounded-xl border border-line bg-surface py-1.5 pl-1.5 pr-2 hover:bg-surface-2" aria-expanded={open}>
             <AddressAvatar seed={current?.name ?? "?"} size={26} />
-            <span className="min-w-0 max-w-28 truncate text-sm font-semibold">{current?.name}</span>
+            <span className="min-w-0 max-w-20 truncate text-sm font-semibold sm:max-w-28">{current?.name}</span>
             {current && !current.backedUp && <ShieldAlert className="size-4 text-warning" aria-label={t("backup.notBackedUp")} />}
             <ChevronDown className="size-4 text-muted" />
           </button>
@@ -87,17 +84,6 @@ export function AccountMenu() {
           </div>
         )}
       </Popover>
-      <button
-        onClick={async () => {
-          qc.clear();
-          await keyring.lock();
-        }}
-        className="rounded-xl p-2 text-muted hover:bg-surface-2 hover:text-fg"
-        aria-label={t("shell.lock")}
-        title={t("shell.lock")}
-      >
-        <Lock className="size-5" />
-      </button>
     </div>
   );
 }
