@@ -15,6 +15,22 @@ describe("validateChainInfo", () => {
     expect(() => validateChainInfo({ ...base, chainSymbolImageUrl: "http://x/y.png" })).toThrow();
     expect(() => validateChainInfo({ ...base, currencies: [{ ...base.currencies[0], coinDecimals: 99 }] })).toThrow();
   });
+  it("accepts 18-decimal gas prices and rejects non-finite ones", () => {
+    const base = BUILTIN_CHAINS[0];
+    const fee = (step: { low: number; average: number; high: number }) => ({ ...base, feeCurrencies: [{ ...base.feeCurrencies[0], gasPriceStep: step }] });
+    const dydx = { low: 12500000000, average: 12500000000, high: 20000000000 };
+    expect(validateChainInfo(fee(dydx)).feeCurrencies[0].gasPriceStep).toEqual(dydx);
+    expect(() => validateChainInfo(fee({ low: Infinity, average: Infinity, high: Infinity }))).toThrow(/gasPriceStep/);
+    expect(() => validateChainInfo(fee({ low: -1, average: 1, high: 1 }))).toThrow(/gasPriceStep/);
+  });
+  it("accepts registry bech32 prefixes beyond plain alphanumerics", () => {
+    const base = BUILTIN_CHAINS[0];
+    for (const p of ["6x", "lava@", "addr_safro"]) {
+      expect(validateChainInfo({ ...base, bech32Config: { ...base.bech32Config, bech32PrefixAccAddr: p } }).bech32Config.bech32PrefixAccAddr).toBe(p);
+    }
+    expect(() => validateChainInfo({ ...base, bech32Config: { ...base.bech32Config, bech32PrefixAccAddr: "did:com:" } })).toThrow(/bech32/);
+    expect(() => validateChainInfo({ ...base, bech32Config: { ...base.bech32Config, bech32PrefixAccAddr: "Cosmos" } })).toThrow(/bech32/);
+  });
   it("drops unsafe explorer templates", () => {
     expect(validateChainInfo({ ...BUILTIN_CHAINS[0], txExplorer: "javascript:${txHash}" }).txExplorer).toBeUndefined();
   });

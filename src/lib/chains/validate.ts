@@ -9,7 +9,9 @@ export class ChainValidationError extends Error {
 }
 
 const CHAIN_ID_RE = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/;
-const PREFIX_RE = /^[a-z][a-z0-9]{0,30}$/;
+// Bech32 HRPs seen in the registry include "6x", "lava@" and "addr_safro". ":" stays out:
+// payment-request parsing treats it as a URI scheme separator.
+const PREFIX_RE = /^[a-z0-9][a-z0-9@_]{0,30}$/;
 const DENOM_RE = /^[a-zA-Z][a-zA-Z0-9/:._-]{1,127}$/;
 
 function assert(cond: unknown, msg: string): asserts cond {
@@ -75,7 +77,8 @@ export function validateChainInfo(input: unknown): ChainInfo {
     const step = c.gasPriceStep;
     if (step) {
       for (const k of ["low", "average", "high"] as const) {
-        assert(typeof step[k] === "number" && step[k] >= 0 && step[k] < 1e9, `feeCurrencies[${i}].gasPriceStep.${k} invalid`);
+        // 18-decimal fee tokens (dYdX, Dymension, Haqq, …) price gas in the 1e10–1e11 range.
+        assert(typeof step[k] === "number" && Number.isFinite(step[k]) && step[k] >= 0 && step[k] < 1e15, `feeCurrencies[${i}].gasPriceStep.${k} invalid`);
       }
       assert(step.low <= step.average && step.average <= step.high, `feeCurrencies[${i}].gasPriceStep must be low ≤ average ≤ high`);
     }

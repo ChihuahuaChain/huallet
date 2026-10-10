@@ -1,6 +1,6 @@
 import { toUtf8 } from "@cosmjs/encoding";
 import { describe, expect, it } from "vitest";
-import { msgsToJson, summarize } from "./tx";
+import { computeFee, msgsToJson, summarize } from "./tx";
 
 const execute = (msg: Uint8Array, funds: Array<{ denom: string; amount: string }> = []) => ({
   typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -25,5 +25,12 @@ describe("summarize MsgExecuteContract", () => {
     const m = execute(new Uint8Array([0xff, 0x00, 0x01]));
     expect(summarize(m).kind).toBe("unknown");
     expect(() => msgsToJson([m])).not.toThrow();
+  });
+});
+
+describe("computeFee", () => {
+  it("handles 18-decimal gas prices exactly", () => {
+    const adydx = { coinDenom: "DYDX", coinMinimalDenom: "adydx", coinDecimals: 18, gasPriceStep: { low: 12500000000, average: 12500000000, high: 20000000000 } };
+    expect(computeFee(adydx, "high", 200000)).toEqual({ amount: [{ denom: "adydx", amount: "4000000000000000" }], gas: "200000" });
   });
 });
