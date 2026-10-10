@@ -1,0 +1,5 @@
+- Ledger: auto-compound (REStake) on/off; addresses on all non-EVM Cosmos chains
+- Add dYdX, Dymension, Haqq, Evmos, ZetaChain, Lava and more from the registry
+- Accurate gas estimates: no more "out of gas" on small transactions, lower fees on Chihuahua
+- No delegating to jailed validators
+- Lock wallet moved to Settings; privacy toggle next to the total balance
