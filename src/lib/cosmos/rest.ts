@@ -18,11 +18,16 @@ export function restEndpoints(chain: ChainInfo): string[] {
   return p ? [p, ...all.filter((u) => u !== p)] : all;
 }
 
-async function fetchJson<T>(url: string, timeoutMs: number): Promise<T> {
+async function fetchJson<T>(url: string, timeoutMs: number, body?: unknown): Promise<T> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const res = await fetch(url, { signal: ctrl.signal, credentials: "omit", referrerPolicy: "no-referrer" });
+    const res = await fetch(url, {
+      signal: ctrl.signal,
+      credentials: "omit",
+      referrerPolicy: "no-referrer",
+      ...(body === undefined ? {} : { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }),
+    });
     if (!res.ok) {
       let msg = `HTTP ${res.status}`;
       try {
@@ -39,10 +44,18 @@ async function fetchJson<T>(url: string, timeoutMs: number): Promise<T> {
 }
 
 export async function restGet<T>(chain: ChainInfo, path: string, timeoutMs = 12_000): Promise<T> {
+  return restRequest<T>(chain, path, timeoutMs);
+}
+
+export async function restPost<T>(chain: ChainInfo, path: string, body: unknown, timeoutMs = 12_000): Promise<T> {
+  return restRequest<T>(chain, path, timeoutMs, body);
+}
+
+async function restRequest<T>(chain: ChainInfo, path: string, timeoutMs: number, body?: unknown): Promise<T> {
   let lastErr: unknown;
   for (const base of restEndpoints(chain)) {
     try {
-      const out = await fetchJson<T>(base + path, timeoutMs);
+      const out = await fetchJson<T>(base + path, timeoutMs, body);
       preferred.set(chain.chainId, base);
       return out;
     } catch (e) {

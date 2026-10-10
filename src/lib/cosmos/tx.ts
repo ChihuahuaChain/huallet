@@ -1,5 +1,6 @@
+import { encodeSecp256k1Pubkey } from "@cosmjs/amino";
 import { fromUtf8, toBase64, toUtf8 } from "@cosmjs/encoding";
-import { Registry, type EncodeObject, type GeneratedType, type OfflineSigner } from "@cosmjs/proto-signing";
+import { encodePubkey, Registry, type AccountData, type EncodeObject, type GeneratedType, type OfflineSigner } from "@cosmjs/proto-signing";
 import {
   accountFromAny,
   AminoTypes,
@@ -16,6 +17,8 @@ import { VoteOption as ProtoVoteOption } from "cosmjs-types/cosmos/gov/v1beta1/g
 import { GenericAuthorization } from "cosmjs-types/cosmos/authz/v1beta1/authz";
 import { AuthorizationType, StakeAuthorization } from "cosmjs-types/cosmos/staking/v1beta1/authz";
 import type { Any } from "cosmjs-types/google/protobuf/any";
+import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
+import { AuthInfo, TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import type { ChainInfo, FeeCurrency } from "../chains/types";
 import { feeCurrencyOf } from "../chains/types";
@@ -31,7 +34,7 @@ import {
   type SwapExactAmountInValue,
 } from "../dex/msgOsmosis";
 import { createAuthzAminoConverters } from "./authzAmino";
-import type { VoteOption } from "./rest";
+import { restPost, type VoteOption } from "./rest";
 
 export const registry = new Registry([
   ...defaultRegistryTypes,
@@ -102,9 +105,11 @@ async function connect(chain: ChainInfo, signer: OfflineSigner): Promise<{ clien
 
 export type FeeLevel = "low" | "average" | "high";
 
-// Chihuahua's simulation under-reports real execution gas (notably WritePerByte)
-// by ~40%, so a 1.4 margin left txs failing out-of-gas. 1.6 gives headroom.
-export const GAS_ADJUSTMENT = 1.6;
+// Margin over a fee-inclusive simulation (see simulate()), which lands within ~1% of execution.
+export const GAS_ADJUSTMENT = 1.3;
+
+/** Gas the ante handler spends deducting the fee (Chihuahua: transfer + burn, ~33k). Fallback only. */
+const FEE_DEDUCTION_GAS = 40_000;
 
 function priceToString(n: number): string {
   return n.toFixed(18).replace(/\.?0+$/, "") || "0";
@@ -128,14 +133,49 @@ export interface Simulation {
   gasLimit: number;
 }
 
+/**
+ * cosmjs simulates with an empty fee, so the ante handler skips fee deduction entirely. On
+ * Chihuahua that is a bank transfer plus a burn, ~33k gas the estimate never saw: small txs
+ * (a REStake revoke executes in ~50k) ran out of gas even with a 1.6 margin. So the estimate
+ * is re-simulated with a realistic fee attached; if that fails (e.g. the balance can't cover
+ * the probe fee) a fixed allowance stands in for the deduction.
+ */
 export async function simulate(chain: ChainInfo, signer: OfflineSigner, msgs: EncodeObject[], memo: string): Promise<Simulation> {
   const { client, address } = await connect(chain, signer);
   try {
-    const gasUsed = await client.simulate(address, msgs, memo);
+    const withoutFee = await client.simulate(address, msgs, memo);
+    const [account] = await signer.getAccounts();
+    const probeGas = Math.ceil(withoutFee * GAS_ADJUSTMENT) + FEE_DEDUCTION_GAS;
+    const gasUsed = await simulateWithFee(chain, account, (await client.getSequence(address)).sequence, msgs, memo, probeGas).catch(
+      () => withoutFee + FEE_DEDUCTION_GAS,
+    );
     return { gasUsed, gasLimit: Math.ceil(gasUsed * GAS_ADJUSTMENT) };
   } finally {
     client.disconnect();
   }
+}
+
+async function simulateWithFee(chain: ChainInfo, account: AccountData, sequence: number, msgs: EncodeObject[], memo: string, probeGas: number): Promise<number> {
+  const fee = computeFee(feeCurrencyOf(chain), "high", probeGas);
+  const bodyBytes = TxBody.encode(TxBody.fromPartial({ messages: msgs.map((m) => registry.encodeAsAny(m)), memo })).finish();
+  const authInfoBytes = AuthInfo.encode(
+    AuthInfo.fromPartial({
+      signerInfos: [
+        {
+          publicKey: encodePubkey(encodeSecp256k1Pubkey(account.pubkey)),
+          modeInfo: { single: { mode: SignMode.SIGN_MODE_UNSPECIFIED } },
+          sequence: BigInt(sequence),
+        },
+      ],
+      fee: { amount: [...fee.amount], gasLimit: 0n },
+    }),
+  ).finish();
+  // A 64-byte placeholder signature so the per-byte tx size cost matches the signed tx.
+  const txBytes = TxRaw.encode({ bodyBytes, authInfoBytes, signatures: [new Uint8Array(64)] }).finish();
+  const r = await restPost<{ gas_info?: { gas_used?: string } }>(chain, "/cosmos/tx/v1beta1/simulate", { tx_bytes: toBase64(txBytes) });
+  const used = Number(r.gas_info?.gas_used);
+  if (!Number.isSafeInteger(used) || used <= 0) throw new Error("Simulation returned no gas estimate");
+  return used;
 }
 
 export interface BroadcastResult {
