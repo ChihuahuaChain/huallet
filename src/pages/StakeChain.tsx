@@ -25,7 +25,6 @@ import type { RestakeOperator, Validator } from "@/lib/cosmos/rest";
 import { computeFee, msg, RESTAKE_GRANT_DURATION_SECONDS } from "@/lib/cosmos/tx";
 import { formatDateTime, formatPercent, fromBaseUnits, timeUntil, toBaseUnits, toNumber } from "@/lib/format";
 import { useAllChains } from "@/state/chains";
-import { useWallet } from "@/state/wallet";
 
 const STAKE_AUTHORIZATION_TYPE = "/cosmos.staking.v1beta1.StakeAuthorization";
 
@@ -86,7 +85,6 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
   const apr = useApr(chain);
   const available = useBalanceOf(chain, address, cur.coinMinimalDenom);
   const price = usePrices(cur.coinGeckoId ? [cur.coinGeckoId] : []).data?.[cur.coinGeckoId ?? ""];
-  const { isLedger } = useWallet();
   const operators = useRestakeOperators(chain);
   const grants = useGrants(chain, address);
 
@@ -249,17 +247,13 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
                       <span className="text-muted">{t("stake.autocompoundOff")}</span>
                     )}
                     <div className="ml-auto flex items-center gap-2">
-                      {isLedger ? (
-                        <span className="text-muted">{t("stake.autocompoundLedger")}</span>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant={active ? "secondary" : "primary"}
-                          onClick={() => setRestake({ operator: op, valoper, active })}
-                        >
-                          {active ? t("stake.autocompoundDisable") : t("stake.autocompoundEnable")}
-                        </Button>
-                      )}
+                      <Button
+                        size="sm"
+                        variant={active ? "secondary" : "primary"}
+                        onClick={() => setRestake({ operator: op, valoper, active })}
+                      >
+                        {active ? t("stake.autocompoundDisable") : t("stake.autocompoundEnable")}
+                      </Button>
                     </div>
                   </div>
                 )}

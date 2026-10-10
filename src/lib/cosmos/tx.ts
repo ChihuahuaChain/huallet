@@ -30,6 +30,7 @@ import {
   type SplitRouteSwapExactAmountInValue,
   type SwapExactAmountInValue,
 } from "../dex/msgOsmosis";
+import { createAuthzAminoConverters } from "./authzAmino";
 import type { VoteOption } from "./rest";
 
 export const registry = new Registry([
@@ -45,6 +46,7 @@ export const aminoTypes = new AminoTypes({
   [MsgSwapExactAmountIn.typeUrl]: swapExactAmountInAminoConverter,
   [MsgSplitRouteSwapExactAmountIn.typeUrl]: splitRouteSwapExactAmountInAminoConverter,
   ...createDefaultAminoConverters(),
+  ...createAuthzAminoConverters(),
   "/cosmwasm.wasm.v1.MsgExecuteContract": {
     aminoType: "wasm/MsgExecuteContract",
     toAmino: ({ sender, contract, msg, funds }: MsgExecuteContract) => ({

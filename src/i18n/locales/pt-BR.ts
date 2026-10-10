@@ -342,7 +342,6 @@ const ptBR: Record<string, string> = {
   "stake.autocompoundOnFreq": "Ligado · {freq}",
   "stake.autocompoundEnable": "Ativar",
   "stake.autocompoundDisable": "Desativar",
-  "stake.autocompoundLedger": "Não disponível com Ledger",
   "stake.autocompoundEnableTitle": "Ativar REStake com {validator}",
   "stake.autocompoundDisableTitle": "Desativar REStake com {validator}",
   "stake.autocompoundBody": "Autorize {validator} a resgatar e refazer staking das suas recompensas automaticamente por você ({freq}). Seus fundos nunca saem da sua carteira.",

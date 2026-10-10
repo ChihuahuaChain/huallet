@@ -342,7 +342,6 @@ const fr: Record<string, string> = {
   "stake.autocompoundOnFreq": "Activé · {freq}",
   "stake.autocompoundEnable": "Activer",
   "stake.autocompoundDisable": "Désactiver",
-  "stake.autocompoundLedger": "Non disponible avec Ledger",
   "stake.autocompoundEnableTitle": "Activer REStake avec {validator}",
   "stake.autocompoundDisableTitle": "Désactiver REStake avec {validator}",
   "stake.autocompoundBody": "Autorisez {validator} à réclamer et restaker automatiquement vos récompenses à votre place ({freq}). Vos fonds ne quittent jamais votre wallet.",

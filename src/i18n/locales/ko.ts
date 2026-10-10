@@ -342,7 +342,6 @@ const ko: Record<string, string> = {
   "stake.autocompoundOnFreq": "켜짐 · {freq}",
   "stake.autocompoundEnable": "활성화",
   "stake.autocompoundDisable": "비활성화",
-  "stake.autocompoundLedger": "Ledger에서는 사용할 수 없습니다",
   "stake.autocompoundEnableTitle": "{validator}와(과) REStake 활성화",
   "stake.autocompoundDisableTitle": "{validator}와(과) REStake 비활성화",
   "stake.autocompoundBody": "{validator}이(가) 당신을 대신하여 보상을 자동으로 수령하고 다시 스테이킹하도록 승인합니다 ({freq}). 당신의 자금은 절대 지갑을 떠나지 않습니다.",

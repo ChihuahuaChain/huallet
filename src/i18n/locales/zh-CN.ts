@@ -342,7 +342,6 @@ const zhCN: Record<string, string> = {
   "stake.autocompoundOnFreq": "开启 · {freq}",
   "stake.autocompoundEnable": "启用",
   "stake.autocompoundDisable": "停用",
-  "stake.autocompoundLedger": "不支持 Ledger",
   "stake.autocompoundEnableTitle": "为 {validator} 启用 REStake",
   "stake.autocompoundDisableTitle": "为 {validator} 停用 REStake",
   "stake.autocompoundBody": "授权 {validator} 自动为你领取并重新质押你的奖励（{freq}）。你的资金永远不会离开你的钱包。",

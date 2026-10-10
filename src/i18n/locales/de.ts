@@ -342,7 +342,6 @@ const de: Record<string, string> = {
   "stake.autocompoundOnFreq": "An · {freq}",
   "stake.autocompoundEnable": "Aktivieren",
   "stake.autocompoundDisable": "Deaktivieren",
-  "stake.autocompoundLedger": "Mit Ledger nicht verfügbar",
   "stake.autocompoundEnableTitle": "REStake mit {validator} aktivieren",
   "stake.autocompoundDisableTitle": "REStake mit {validator} deaktivieren",
   "stake.autocompoundBody": "Autorisiere {validator}, deine Belohnungen automatisch für dich abzuholen und erneut zu staken ({freq}). Deine Gelder verlassen dein Wallet nie.",

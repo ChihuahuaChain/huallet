@@ -341,7 +341,6 @@ export const en = {
   "stake.autocompoundOnFreq": "On · {freq}",
   "stake.autocompoundEnable": "Enable",
   "stake.autocompoundDisable": "Disable",
-  "stake.autocompoundLedger": "Not available with Ledger",
   "stake.autocompoundEnableTitle": "Enable REStake with {validator}",
   "stake.autocompoundDisableTitle": "Disable REStake with {validator}",
   "stake.autocompoundBody": "Authorize {validator} to automatically claim and re-stake your rewards for you ({freq}). Your funds never leave your wallet.",

@@ -342,7 +342,6 @@ const ja: Record<string, string> = {
   "stake.autocompoundOnFreq": "オン · {freq}",
   "stake.autocompoundEnable": "有効にする",
   "stake.autocompoundDisable": "無効にする",
-  "stake.autocompoundLedger": "Ledgerでは利用できません",
   "stake.autocompoundEnableTitle": "{validator}でREStakeを有効にする",
   "stake.autocompoundDisableTitle": "{validator}でREStakeを無効にする",
   "stake.autocompoundBody": "{validator}があなたの報酬を自動的に受け取って再ステーキングすることを承認します（{freq}）。あなたの資金がウォレットから出ることは決してありません。",
