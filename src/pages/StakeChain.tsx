@@ -219,8 +219,8 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 font-semibold">
                       <span className="truncate">{v?.description.moniker ?? valoper}</span>
-                      {v?.jailed && <Badge tone="danger">{t("stake.jailed")}</Badge>}
-                      {v && v.status !== "BOND_STATUS_BONDED" && !v.jailed && <Badge tone="warning">{t("stake.inactive")}</Badge>}
+                      {v?.jailed && <Badge tone="danger" className="shrink-0 whitespace-nowrap">{t("stake.jailed")}</Badge>}
+                      {v && v.status !== "BOND_STATUS_BONDED" && !v.jailed && <Badge tone="warning" className="shrink-0 whitespace-nowrap">{t("stake.inactive")}</Badge>}
                     </div>
                     <div className="text-xs text-muted">
                       {t("stake.rewards")}: <Amount amount={r} decimals={cur.coinDecimals} symbol={cur.coinDenom} />
@@ -228,7 +228,7 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
                   </div>
                   <Amount amount={d.balance.amount} decimals={cur.coinDecimals} symbol={cur.coinDenom} className="font-semibold" />
                   <div className="flex w-full flex-wrap gap-1.5 sm:w-auto">
-                    {v && <Button size="sm" onClick={() => setAction({ mode: "delegate", validator: v })}>{t("stake.delegate")}</Button>}
+                    {v && !v.jailed && <Button size="sm" onClick={() => setAction({ mode: "delegate", validator: v })}>{t("stake.delegate")}</Button>}
                     {v && <Button size="sm" variant="secondary" onClick={() => setAction({ mode: "undelegate", validator: v })}>{t("stake.undelegate")}</Button>}
                     {v && <Button size="sm" variant="secondary" onClick={() => setAction({ mode: "redelegate", validator: v })}>{t("stake.redelegate")}</Button>}
                     <Button size="sm" variant="ghost" disabled={r === 0n} onClick={() => claim([valoper])}>{t("stake.claim")}</Button>
@@ -305,8 +305,8 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
             const r = rank.get(v.operator_address);
             const web = safeUrl(v.description.website);
             return (
-              <div key={v.operator_address} className="flex items-center gap-3 px-3 py-3">
-                <span className="w-7 text-right text-xs text-muted tabular">{r ?? "—"}</span>
+              <div key={v.operator_address} className="flex items-center gap-2.5 px-2 py-3 sm:gap-3 sm:px-3">
+                <span className="w-6 shrink-0 text-right text-xs text-muted tabular sm:w-7">{r ?? "—"}</span>
                 <ValidatorAvatar moniker={v.description.moniker} logo={logos.data?.[v.operator_address]} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
@@ -316,16 +316,20 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
                         <ExternalLink className="size-3.5" />
                       </a>
                     )}
-                    {v.jailed && <Badge tone="danger">{t("stake.jailed")}</Badge>}
+                    {v.jailed && <Badge tone="danger" className="shrink-0 whitespace-nowrap">{t("stake.jailed")}</Badge>}
                   </div>
-                  <div className="flex gap-3 text-xs text-muted">
-                    <span>{t("stake.votingPower")}: {power.toLocaleString(locale, { maximumFractionDigits: 2 })}%</span>
-                    <span>{t("stake.commission")}: {formatPercent(Number(v.commission.commission_rates.rate), locale, 2)}</span>
+                  {/* Each stat wraps as a whole: in the narrow popup they stack instead of breaking word by word. */}
+                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted">
+                    <span className="whitespace-nowrap">{t("stake.votingPower")}: {power.toLocaleString(locale, { maximumFractionDigits: 2 })}%</span>
+                    <span className="whitespace-nowrap">{t("stake.commission")}: {formatPercent(Number(v.commission.commission_rates.rate), locale, 2)}</span>
                   </div>
                 </div>
-                <Button size="sm" variant={filter === "active" ? "primary" : "secondary"} onClick={() => setAction({ mode: "delegate", validator: v })}>
-                  {t("stake.delegate")}
-                </Button>
+                {/* A jailed validator earns nothing and can be slashed again: no new stake, only exits. */}
+                {!v.jailed && (
+                  <Button size="sm" className="shrink-0" variant={filter === "active" ? "primary" : "secondary"} onClick={() => setAction({ mode: "delegate", validator: v })}>
+                    {t("stake.delegate")}
+                  </Button>
+                )}
               </div>
             );
           })}
@@ -465,7 +469,7 @@ function StakeModal({
     }
   }
   const destValidator = validators.find((v) => v.operator_address === dest);
-  const valid = parsed !== null && !error && (mode !== "redelegate" || !!destValidator);
+  const valid = parsed !== null && !error && (mode !== "redelegate" || !!destValidator) && !(mode === "delegate" && validator.jailed);
   const commission = Number(validator.commission.commission_rates.rate);
 
   const submit = () => {
@@ -484,7 +488,7 @@ function StakeModal({
     });
   };
 
-  const tabs: Array<{ value: Mode; label: string }> = [{ value: "delegate", label: t("stake.delegate") }];
+  const tabs: Array<{ value: Mode; label: string }> = validator.jailed ? [] : [{ value: "delegate", label: t("stake.delegate") }];
   if (delegated > 0n) tabs.push({ value: "undelegate", label: t("stake.undelegate") }, { value: "redelegate", label: t("stake.redelegate") });
 
   return (
