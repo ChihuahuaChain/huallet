@@ -2,7 +2,7 @@ import type { AminoSignResponse, OfflineAminoSigner, StdSignDoc } from "@cosmjs/
 import type { AccountData, DirectSignResponse, OfflineDirectSigner } from "@cosmjs/proto-signing";
 import type { SignDoc } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import type { ChainInfo } from "@/lib/chains/types";
-import type { KeyMeta } from "@/lib/keyring/keyring";
+import { ledgerSupportsChain, type KeyMeta } from "@/lib/keyring/keyring";
 import type { WalletBackend } from "@/state/wallet";
 import { b64decode, b64encode, type SerializedAccount, type SerializedSignDoc, type StdSignature } from "../shared/protocol";
 import { signAminoWithLedger } from "../ledger/ledger";
@@ -72,5 +72,6 @@ export function localBackend(key: KeyMeta): WalletBackend {
     hardware: ledger,
     getAddress: async (chain) => (await bg<SerializedAccount>({ type: "getAccount", keyId, chain })).address,
     getSigner: async (chain) => (ledger ? new PageLedgerSigner(key, chain) : new BackgroundSigner(keyId, chain)),
+    supportsChain: (chain) => !ledger || ledgerSupportsChain(chain),
   };
 }

@@ -3,19 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { Amount, Fiat } from "@/components/Amount";
 import { PageHeader } from "@/components/layout/AppShell";
 import { Button, Card, Skeleton, TokenIcon } from "@/components/ui";
-import { usePrices } from "@/hooks/queries";
+import { useAccountChains, usePrices } from "@/hooks/queries";
 import { useStakingOverview } from "@/hooks/useStakingOverview";
 import { useLocale, useT } from "@/i18n";
 import { stakeCurrencyOf } from "@/lib/chains/types";
 import { formatPercent, toNumber } from "@/lib/format";
-import { useEnabledChains } from "@/state/chains";
-import { claimAll } from "./Dashboard";
+import { claimAll, UnsupportedChainsNote } from "./Dashboard";
 
 export function StakeOverview() {
   const t = useT();
   const locale = useLocale();
   const navigate = useNavigate();
-  const chains = useEnabledChains();
+  const { chains, unsupported } = useAccountChains();
   const overview = useStakingOverview(chains);
   const prices = usePrices(chains.map((c) => stakeCurrencyOf(c).coinGeckoId ?? "")).data ?? {};
 
@@ -42,6 +41,8 @@ export function StakeOverview() {
           <div className="mt-1 font-display text-3xl font-bold"><Fiat value={totalRewards} /></div>
         </Card>
       </div>
+
+      <UnsupportedChainsNote chains={unsupported} />
 
       <Card className="overflow-hidden">
         <div className="hidden grid-cols-[1.5fr_0.7fr_1fr_1fr_auto] gap-4 border-b border-line px-5 py-3 text-xs font-medium uppercase tracking-wide text-muted md:grid">

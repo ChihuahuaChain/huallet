@@ -10,6 +10,8 @@ export interface WalletBackend {
   hardware?: boolean;
   getAddress(chain: ChainInfo): Promise<string>;
   getSigner(chain: ChainInfo): Promise<OfflineSigner>;
+  /** False when the account can't hold an address on `chain` (e.g. a Ledger key off coin type 118). Absent means every chain. */
+  supportsChain?(chain: ChainInfo): boolean;
 }
 
 interface WalletState {

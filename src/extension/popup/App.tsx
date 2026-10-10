@@ -104,7 +104,7 @@ function Gate() {
   }, [refresh]);
 
   useEffect(() => {
-    if (status === "unlocked" && key) useWallet.getState().useBackend(localBackend(key), key.name);
+    if (status === "unlocked" && key) useWallet.getState().useBackend(localBackend(key), key.name, key.type === "ledger");
     if (status === "locked") qc.clear();
   }, [status, key, qc]);
 

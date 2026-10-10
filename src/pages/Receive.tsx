@@ -4,7 +4,7 @@ import { NfcReceive } from "@/components/PayRequest";
 import { QrCode } from "@/components/QrCode";
 import { useDogtagAlias } from "@/components/RecipientInput";
 import { Alert, Card, CardHeader, CopyButton, Skeleton, TokenIcon } from "@/components/ui";
-import { useAddress, useAddresses } from "@/hooks/queries";
+import { useAccountChains, useAddress, useAddresses } from "@/hooks/queries";
 import { useT } from "@/i18n";
 import { explorerAccountUrl } from "@/lib/chains/types";
 import { DOGTAGS_URL, dogtagsContract } from "@/lib/dogtags";
@@ -17,6 +17,7 @@ export function ReceivePage() {
   const address = useAddress(chain);
   const chains = useEnabledChains();
   const addresses = useAddresses(chains);
+  const unsupported = new Set(useAccountChains().unsupported.map((c) => c.chainId));
   const selectChain = useChainsStore((s) => s.selectChain);
   const explorer = address ? explorerAccountUrl(chain, address) : undefined;
   const alias = useDogtagAlias(chain, address);
@@ -71,7 +72,7 @@ export function ReceivePage() {
                   <TokenIcon src={c.chainSymbolImageUrl} symbol={c.chainName} size={32} />
                   <div className="min-w-0">
                     <div className="text-sm font-semibold">{c.chainName}</div>
-                    <div className="truncate font-mono text-xs text-muted">{addresses[c.chainId] ? shortAddress(addresses[c.chainId]!, 14, 8) : "…"}</div>
+                    <div className="truncate font-mono text-xs text-muted">{addresses[c.chainId] ? shortAddress(addresses[c.chainId]!, 14, 8) : unsupported.has(c.chainId) ? t("ledger.notSupported") : "…"}</div>
                   </div>
                 </button>
                 {addresses[c.chainId] && <CopyButton text={addresses[c.chainId]!} />}

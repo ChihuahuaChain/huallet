@@ -16,12 +16,13 @@ import {
   Repeat,
   Send,
   Settings,
+  Usb,
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useSwipeTabs } from "@/hooks/useSwipeTabs";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useT, type MessageKey } from "@/i18n";
-import { useAddress } from "@/hooks/queries";
+import { useAddress, useChainSupported } from "@/hooks/queries";
 import { explorerAccountUrl } from "@/lib/chains/types";
 import { shortAddress } from "@/lib/format";
 import { useChainsStore, useEnabledChains, useSelectedChain } from "@/state/chains";
@@ -31,7 +32,7 @@ import { version } from "../../../package.json";
 import { Logo } from "../Logo";
 import { TxModalHost } from "../TxModal";
 import { AddressAvatar } from "../AddressAvatar";
-import { Badge, CopyButton, TokenIcon, cx } from "../ui";
+import { Alert, Badge, CopyButton, TokenIcon, cx } from "../ui";
 
 const NAV: Array<{ to: string; key: MessageKey; icon: typeof LayoutDashboard; mobile?: boolean }> = [
   { to: "/", key: "nav.dashboard", icon: LayoutDashboard, mobile: true },
@@ -138,6 +139,7 @@ export function ChainSwitcher() {
   const chains = useEnabledChains();
   const selected = useSelectedChain();
   const select = useChainsStore((s) => s.selectChain);
+  const backend = useWallet((s) => s.backend);
   return (
     <Popover
       align="left"
@@ -153,22 +155,25 @@ export function ChainSwitcher() {
         <div>
           <div className="px-2 pb-1 pt-1 text-xs font-medium uppercase tracking-wide text-muted">{t("chains.select")}</div>
           <div className="max-h-80 overflow-y-auto">
-            {chains.map((c) => (
-              <button
-                key={c.chainId}
-                onClick={() => {
-                  select(c.chainId);
-                  close();
-                }}
-                className={cx("flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left hover:bg-surface-2", c.chainId === selected.chainId && "bg-surface-2")}
-              >
-                <TokenIcon src={c.chainSymbolImageUrl} symbol={c.chainName} size={28} />
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold">{c.chainName}</div>
-                  <div className="truncate text-xs text-muted">{c.chainId}</div>
-                </div>
-              </button>
-            ))}
+            {chains.map((c) => {
+              const supported = backend?.supportsChain?.(c) ?? true;
+              return (
+                <button
+                  key={c.chainId}
+                  onClick={() => {
+                    select(c.chainId);
+                    close();
+                  }}
+                  className={cx("flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left hover:bg-surface-2", c.chainId === selected.chainId && "bg-surface-2")}
+                >
+                  <TokenIcon src={c.chainSymbolImageUrl} symbol={c.chainName} size={28} className={cx(!supported && "opacity-50")} />
+                  <div className="min-w-0">
+                    <div className={cx("truncate text-sm font-semibold", !supported && "text-muted")}>{c.chainName}</div>
+                    <div className="truncate text-xs text-muted">{supported ? c.chainId : t("ledger.notSupported")}</div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
           <Link to="/chains" onClick={close} className="mt-1 flex items-center gap-2 rounded-xl border-t border-line px-2 py-2 pt-2.5 text-sm font-medium hover:bg-surface-2">
             <Plus className="size-4" /> {t("chains.manage")}
@@ -176,6 +181,19 @@ export function ChainSwitcher() {
         </div>
       )}
     </Popover>
+  );
+}
+
+function UnsupportedChainBanner() {
+  const t = useT();
+  const chain = useSelectedChain();
+  if (useChainSupported(chain)) return null;
+  return (
+    <div className="mb-4">
+      <Alert tone="warning" icon={<Usb className="size-4" />} title={t("ledger.unsupportedChainTitle", { chain: chain.chainName })}>
+        {t("ledger.unsupportedChain")}
+      </Alert>
+    </div>
   );
 }
 
@@ -240,6 +258,7 @@ export function AppShell({ menu = <WalletMenu />, compact = false }: { menu?: Re
           </div>
         </header>
         <main ref={mainRef} key={pathname} className={cx("swipe-page mx-auto min-h-[70vh] max-w-6xl overflow-x-clip lg:px-8 lg:py-8", compact ? "px-3 py-4" : "px-4 py-6")}>
+          <UnsupportedChainBanner />
           <Outlet />
         </main>
       </div>

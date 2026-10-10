@@ -29,7 +29,7 @@ function addressQuery(chain: ChainInfo | undefined, backend: WalletBackend | nul
   return {
     queryKey: ["address", backend?.id, version, chain?.chainId, chain?.bech32Config.bech32PrefixAccAddr],
     queryFn: () => backend!.getAddress(chain!),
-    enabled: connected && !!backend && !!chain,
+    enabled: connected && !!backend && !!chain && (backend.supportsChain?.(chain) ?? true),
     staleTime: Infinity,
     retry: false,
   };
@@ -55,6 +55,23 @@ export function useAddressesWithErrors(chains: ChainInfo[]): { addresses: Record
 
 export function useAddresses(chains: ChainInfo[]): Record<string, string | undefined> {
   return useAddressesWithErrors(chains).addresses;
+}
+
+/**
+ * Enabled chains split by whether the active account can hold an address on them. A Ledger
+ * account in the extension only covers coin type 118, so e.g. Secret or Injective land in
+ * `unsupported` and are left out of the multi-chain views instead of loading forever.
+ */
+export function useAccountChains(): { chains: ChainInfo[]; unsupported: ChainInfo[] } {
+  const enabled = useEnabledChains();
+  const backend = useWallet((s) => s.backend);
+  const supported = (c: ChainInfo) => backend?.supportsChain?.(c) ?? true;
+  return { chains: enabled.filter(supported), unsupported: enabled.filter((c) => !supported(c)) };
+}
+
+export function useChainSupported(chain: ChainInfo | undefined): boolean {
+  const backend = useWallet((s) => s.backend);
+  return !chain || (backend?.supportsChain?.(chain) ?? true);
 }
 
 function useAllChainsList(): ChainInfo[] {
@@ -88,7 +105,7 @@ export interface ChainPortfolio {
 
 export function usePortfolio(): ChainPortfolio[] {
   const qc = useQueryClient();
-  const chains = useEnabledChains();
+  const { chains } = useAccountChains();
   const everyChain = useAllChainsList();
   const { addresses, errors } = useAddressesWithErrors(chains);
   const results = useQueries({

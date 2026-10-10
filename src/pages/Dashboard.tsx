@@ -1,19 +1,19 @@
-import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Coins, Eye, EyeOff, Gift, Lock, Search, Repeat, ShieldQuestion } from "lucide-react";
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Coins, Eye, EyeOff, Gift, Lock, Search, Repeat, ShieldQuestion, Usb } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Amount, Fiat, MASK } from "@/components/Amount";
 import { PageHeader } from "@/components/layout/AppShell";
 import { requestTx } from "@/components/TxModal";
-import { Badge, Button, Card, CardHeader, EmptyState, Input, Skeleton, TokenIcon, Toggle, cx } from "@/components/ui";
+import { Alert, Badge, Button, Card, CardHeader, EmptyState, Input, Skeleton, TokenIcon, Toggle, cx } from "@/components/ui";
 import { Mascot } from "@/components/Logo";
 import { PromoCards } from "@/components/PromoCards";
-import { usePortfolio, usePrices } from "@/hooks/queries";
+import { useAccountChains, usePortfolio, usePrices } from "@/hooks/queries";
 import { useStakingOverview, type ChainStaking } from "@/hooks/useStakingOverview";
 import { useLocale, useT } from "@/i18n";
-import { stakeCurrencyOf } from "@/lib/chains/types";
+import { stakeCurrencyOf, type ChainInfo } from "@/lib/chains/types";
 import { formatFiat, toNumber } from "@/lib/format";
 import { msg } from "@/lib/cosmos/tx";
-import { useChainsStore, useEnabledChains } from "@/state/chains";
+import { useChainsStore } from "@/state/chains";
 import { assetKey, useHiddenAssets } from "@/state/hiddenAssets";
 import { useSettings } from "@/state/settings";
 
@@ -24,6 +24,17 @@ export function claimAll(s: ChainStaking, title: string) {
     title,
     msgs: s.validatorsWithRewards.map((v) => msg.withdrawRewards(s.address!, v)),
   });
+}
+
+/** Chains enabled in settings that the active Ledger account can't derive an address on. */
+export function UnsupportedChainsNote({ chains }: { chains: ChainInfo[] }) {
+  const t = useT();
+  if (chains.length === 0) return null;
+  return (
+    <Alert tone="info" icon={<Usb className="size-4 text-muted" />}>
+      {t("ledger.unsupportedChains", { chains: chains.map((c) => c.chainName).join(", ") })}
+    </Alert>
+  );
 }
 
 function Stat({ label, children, icon }: { label: string; children: React.ReactNode; icon: React.ReactNode }) {
@@ -46,7 +57,7 @@ export function Dashboard() {
   const { hidden, hide, unhide } = useHiddenAssets();
   const [showHidden, setShowHidden] = useState(false);
   const selectChain = useChainsStore((s) => s.selectChain);
-  const chains = useEnabledChains();
+  const { chains, unsupported } = useAccountChains();
   const portfolio = usePortfolio();
   const staking = useStakingOverview(chains);
   const [query, setQuery] = useState("");
@@ -175,6 +186,8 @@ export function Dashboard() {
       </section>
 
       <PromoCards />
+
+      <UnsupportedChainsNote chains={unsupported} />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
         <Card className="min-w-0">
