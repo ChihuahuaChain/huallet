@@ -4,8 +4,6 @@ import {
   ChevronDown,
   Coins,
   ExternalLink,
-  Eye,
-  EyeOff,
   History,
   Landmark,
   LayoutDashboard,
@@ -26,7 +24,6 @@ import { useAddress, useChainSupported } from "@/hooks/queries";
 import { explorerAccountUrl } from "@/lib/chains/types";
 import { shortAddress } from "@/lib/format";
 import { useChainsStore, useEnabledChains, useSelectedChain } from "@/state/chains";
-import { useSettings } from "@/state/settings";
 import { useWallet } from "@/state/wallet";
 import { version } from "../../../package.json";
 import { Logo } from "../Logo";
@@ -64,8 +61,8 @@ export function Popover({ trigger, children, align = "right" }: { trigger: (open
   const ref = useRef<HTMLDivElement>(null);
   useClickOutside(ref, () => setOpen(false));
   return (
-    <div ref={ref} className="relative">
-      <div onClick={() => setOpen((o) => !o)}>{trigger(open)}</div>
+    <div ref={ref} className="relative min-w-0">
+      <div className="min-w-0" onClick={() => setOpen((o) => !o)}>{trigger(open)}</div>
       {open && (
         <div className={cx("absolute top-full z-40 mt-2 w-72 rounded-2xl border border-line bg-surface p-2 shadow-pop", align === "right" ? "right-0" : "left-0")}>
           {children(() => setOpen(false))}
@@ -144,9 +141,9 @@ export function ChainSwitcher() {
     <Popover
       align="left"
       trigger={(open) => (
-        <button className="flex items-center gap-2 rounded-xl border border-line bg-surface py-1.5 pl-1.5 pr-2.5 hover:bg-surface-2" aria-expanded={open}>
+        <button className="flex min-w-0 max-w-full items-center gap-2 rounded-xl border border-line bg-surface py-1.5 pl-1.5 pr-2.5 hover:bg-surface-2" aria-expanded={open}>
           <TokenIcon src={selected.chainSymbolImageUrl} symbol={selected.chainName} size={26} />
-          <span className="text-sm font-semibold">{selected.chainName}</span>
+          <span className="min-w-0 truncate text-sm font-semibold">{selected.chainName}</span>
           <ChevronDown className="size-4 text-muted" />
         </button>
       )}
@@ -199,7 +196,6 @@ function UnsupportedChainBanner() {
 
 export function AppShell({ menu = <WalletMenu />, compact = false }: { menu?: ReactNode; compact?: boolean }) {
   const t = useT();
-  const { hideBalances, set } = useSettings();
   const localKeys = useWallet((s) => s.backend?.id.startsWith("local:") ?? false);
   const mainRef = useRef<HTMLElement>(null);
   const { pathname } = useLocation();
@@ -246,14 +242,6 @@ export function AppShell({ menu = <WalletMenu />, compact = false }: { menu?: Re
             </Link>
             <ChainSwitcher />
             <div className="flex-1" />
-            <button
-              onClick={() => set({ hideBalances: !hideBalances })}
-              className="rounded-xl p-2 text-muted hover:bg-surface-2 hover:text-fg"
-              aria-label={hideBalances ? t("shell.showBalances") : t("shell.hideBalances")}
-              title={hideBalances ? t("shell.showBalances") : t("shell.hideBalances")}
-            >
-              {hideBalances ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
-            </button>
             {menu}
           </div>
         </header>

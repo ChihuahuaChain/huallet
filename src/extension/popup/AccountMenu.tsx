@@ -26,12 +26,12 @@ export function AccountMenu() {
   const explorer = address ? explorerAccountUrl(chain, address) : undefined;
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex min-w-0 items-center gap-1">
       <Popover
         trigger={(open) => (
-          <button className="flex items-center gap-1.5 rounded-xl border border-line bg-surface py-1.5 pl-1.5 pr-2 hover:bg-surface-2" aria-expanded={open}>
+          <button className="flex min-w-0 max-w-full items-center gap-1.5 rounded-xl border border-line bg-surface py-1.5 pl-1.5 pr-2 hover:bg-surface-2" aria-expanded={open}>
             <AddressAvatar seed={current?.name ?? "?"} size={26} />
-            <span className="hidden max-w-28 truncate text-sm font-semibold sm:inline">{current?.name}</span>
+            <span className="min-w-0 max-w-28 truncate text-sm font-semibold">{current?.name}</span>
             {current && !current.backedUp && <ShieldAlert className="size-4 text-warning" aria-label={t("backup.notBackedUp")} />}
             <ChevronDown className="size-4 text-muted" />
           </button>

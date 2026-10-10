@@ -166,7 +166,17 @@ export function Dashboard() {
       <PageHeader title={t("dashboard.title")} subtitle={t("dashboard.subtitle")} />
 
       <section className="paw-bg relative overflow-hidden rounded-3xl bg-huahua-300 p-6 text-ink shadow-card sm:p-8 dark:bg-surface dark:text-fg">
-        <div className="text-sm font-medium text-ink/70 dark:text-muted">{t("dashboard.total")}</div>
+        <div className="flex items-center gap-1 text-sm font-medium text-ink/70 dark:text-muted">
+          {t("dashboard.total")}
+          <button
+            onClick={() => set({ hideBalances: !hideBalances })}
+            className="rounded-lg p-1 hover:bg-ink/10 hover:text-ink dark:hover:bg-surface-2 dark:hover:text-fg"
+            aria-label={hideBalances ? t("shell.showBalances") : t("shell.hideBalances")}
+            title={hideBalances ? t("shell.showBalances") : t("shell.hideBalances")}
+          >
+            {hideBalances ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </button>
+        </div>
         <div className={cx("mt-1 font-display font-bold", totalSize)}>
           {showPrices && loading && total === 0 ? <Skeleton className="h-12 w-48 bg-ink/10" /> : <span className="tabular">{totalStr}</span>}
         </div>
