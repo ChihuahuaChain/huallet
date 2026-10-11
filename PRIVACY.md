@@ -26,6 +26,8 @@ To show balances and send transactions, Huallet connects directly from your brow
 - **Cosmos Chain Registry** (`raw.githubusercontent.com/cosmos/chain-registry`) and **cosmos.directory** for public chain and token metadata.
 - **Osmosis router** (`sqs.osmosis.zone`), only when you use the Osmosis swap — it receives the tokens and amount you want to quote, never your address. The list of Osmosis assets comes from `raw.githubusercontent.com/osmosis-labs/assetlists`.
 - **Token and chain logos** hosted by the chain registry or by the chain configuration you add.
+- **Chihuahua news feed** (`service.chihuahua.wtf/promos.json`), at most once an hour, for the news cards on the desktop
+  dashboard — a plain download that sends no address or identifier. It stops when news is turned off in Settings.
 
 No analytics, tracking pixels, advertising or crash-reporting services are used.
 

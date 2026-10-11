@@ -1,23 +1,25 @@
 import { ArrowUpRight, X } from "lucide-react";
 import { Card } from "@/components/ui";
-import { PROMOS } from "@/data/promos";
+import { usePromos } from "@/hooks/usePromos";
 import { useT } from "@/i18n";
 import { useSettings } from "@/state/settings";
 import { isMobileView } from "@/extension/popup/view";
 
 /**
  * MetaMask-style stack of promo "news" cards, shown on the desktop dashboard only.
- * Each card carries the project's real brand image and accent colour. One card
- * shows at a time; the X dismisses it (remembered forever) and reveals the next.
+ * The cards come from the shared Chihuahua news feed (see data/promos.ts); each carries
+ * its project's icon and accent colour. One card shows at a time; the X dismisses it (remembered forever) and reveals the next.
  * When the queue is empty the section disappears until a promo with a new id is
  * added. The whole feature can be turned off and back on in Settings.
  */
 export function PromoCards() {
   const t = useT();
   const { showPromotions, dismissedPromos, set } = useSettings();
+  const enabled = !isMobileView() && showPromotions;
+  const promos = usePromos(enabled);
 
-  if (isMobileView() || !showPromotions) return null;
-  const queue = PROMOS.filter((p) => !dismissedPromos.includes(p.id));
+  if (!enabled) return null;
+  const queue = promos.filter((p) => !dismissedPromos.includes(p.id));
   if (queue.length === 0) return null;
 
   const promo = queue[0];
