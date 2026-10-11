@@ -1,4 +1,4 @@
-import { Calendar, Coins, Flame, Gift, Megaphone, Rocket, Sparkles, Star, Tag, TrendingUp, Trophy, Wallet, type LucideIcon } from "lucide-react";
+import { Calendar, Coins, Flame, Gift, Handshake, Megaphone, Rocket, Sparkles, Star, Sunrise, Tag, TrendingUp, Trophy, Wallet, type LucideIcon } from "lucide-react";
 
 /**
  * Promotional "news" cards shown on the desktop dashboard, MetaMask-style:
@@ -47,6 +47,8 @@ const ICONS: Record<string, LucideIcon> = {
   star: Star,
   calendar: Calendar,
   trophy: Trophy,
+  sunrise: Sunrise,
+  handshake: Handshake,
 };
 
 const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
