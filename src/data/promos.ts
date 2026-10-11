@@ -31,7 +31,14 @@ export interface Promo {
   icon: LucideIcon;
   /** Brand accent colour (hex) used for the tile, tint, border, eyebrow and CTA. */
   accent: string;
+  /** Title with accent marks: *word* in coral, +word+ in green. Defaults to the title. */
+  headline: string;
+  /** Small illustration drawn in place of the icon tile, when the feed names one. */
+  scene?: PromoScene;
 }
+
+export const SCENES = ["dogtags", "predict", "burn", "morning", "otc"] as const;
+export type PromoScene = (typeof SCENES)[number];
 
 /** Icon names a feed entry may use. */
 const ICONS: Record<string, LucideIcon> = {
@@ -76,6 +83,8 @@ export function parsePromo(raw: unknown, now = Date.now()): Promo | null {
     url,
     icon: ICONS[str(p.icon)] ?? Megaphone,
     accent,
+    headline: str(p.headline) || title,
+    scene: (SCENES as readonly string[]).includes(str(p.scene)) ? (str(p.scene) as PromoScene) : undefined,
   };
 }
 
@@ -102,6 +111,8 @@ export const BUNDLED_FEED = {
       url: "https://tags.chihuahua.wtf",
       accent: "#F0A841",
       icon: "tag",
+      headline: "Give your wallet a *name*",
+      scene: "dogtags",
       targets: ["explorer", "huallet"],
     },
     {
@@ -113,6 +124,8 @@ export const BUNDLED_FEED = {
       url: "https://predict.chihuahua.wtf",
       accent: "#1F9E57",
       icon: "trending-up",
+      headline: "Call the market +up+ or *down*",
+      scene: "predict",
       targets: ["explorer", "huallet"],
     },
     {
@@ -124,6 +137,8 @@ export const BUNDLED_FEED = {
       url: "https://burn.chihuahua.wtf",
       accent: "#F26A3C",
       icon: "flame",
+      headline: "Every fee feeds the *fire*",
+      scene: "burn",
       targets: ["explorer", "huallet"],
     },
   ],
