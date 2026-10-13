@@ -2,13 +2,18 @@ import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Amount, Fiat } from "@/components/Amount";
 import { PageHeader } from "@/components/layout/AppShell";
+import { SortSelect } from "@/components/SortSelect";
 import { Button, Card, Skeleton, TokenIcon } from "@/components/ui";
 import { useAccountChains, usePrices } from "@/hooks/queries";
 import { useStakingOverview } from "@/hooks/useStakingOverview";
 import { useLocale, useT } from "@/i18n";
 import { stakeCurrencyOf } from "@/lib/chains/types";
 import { formatPercent, toNumber } from "@/lib/format";
+import { useSortPref } from "@/state/settings";
 import { claimAll, UnsupportedChainsNote } from "./Dashboard";
+import { NymStakeEntry } from "./NymStake";
+
+const STAKE_SORTS = ["default", "nameAsc", "nameDesc", "staked", "rewards", "apr"] as const;
 
 export function StakeOverview() {
   const t = useT();
@@ -27,6 +32,21 @@ export function StakeOverview() {
   const totalStaked = sum((i) => fiat(overview[i].staked, i));
   const totalRewards = sum((i) => fiat(overview[i].rewards, i));
 
+  const [sort, setSort] = useSortPref("stake", STAKE_SORTS, "default");
+  const rows = overview.map((s, i) => ({ s, i }));
+  if (sort !== "default") {
+    const byName = (a: (typeof rows)[number], b: (typeof rows)[number]) => a.s.chain.chainName.localeCompare(b.s.chain.chainName, locale, { sensitivity: "base" });
+    const desc = (pick: (r: (typeof rows)[number]) => number | null | undefined) => (a: (typeof rows)[number], b: (typeof rows)[number]) =>
+      (pick(b) ?? -1) - (pick(a) ?? -1) || byName(a, b);
+    rows.sort(
+      sort === "nameAsc" ? byName
+      : sort === "nameDesc" ? (a, b) => -byName(a, b)
+      : sort === "staked" ? desc((r) => fiat(r.s.staked, r.i))
+      : sort === "rewards" ? desc((r) => fiat(r.s.rewards, r.i))
+      : desc((r) => r.s.apr),
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader title={t("stake.title")} subtitle={t("stake.subtitle")} />
@@ -43,7 +63,11 @@ export function StakeOverview() {
       </div>
 
       <UnsupportedChainsNote chains={unsupported} />
+      <NymStakeEntry chains={chains} />
 
+      <div className="flex justify-end">
+        <SortSelect value={sort} onChange={setSort} options={STAKE_SORTS.map((v) => ({ value: v, label: t(`sort.${v}`) }))} />
+      </div>
       <Card className="overflow-hidden">
         <div className="hidden grid-cols-[1.5fr_0.7fr_1fr_1fr_auto] gap-4 border-b border-line px-5 py-3 text-xs font-medium uppercase tracking-wide text-muted md:grid">
           <span>{t("stake.chain")}</span>
@@ -53,7 +77,7 @@ export function StakeOverview() {
           <span className="w-40" />
         </div>
         <div className="divide-y divide-line">
-          {overview.map((s, i) => {
+          {rows.map(({ s, i }) => {
             const cur = stakeCurrencyOf(s.chain);
             return (
               <div

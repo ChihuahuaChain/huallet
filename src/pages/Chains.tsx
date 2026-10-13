@@ -2,14 +2,18 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle2, Plus, Search, Trash2, XCircle } from "lucide-react";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/layout/AppShell";
+import { SortSelect } from "@/components/SortSelect";
 import { toast } from "@/components/Toaster";
 import { Alert, Badge, Button, Card, Field, Input, Modal, Spinner, Tabs, Textarea, TokenIcon, Toggle } from "@/components/ui";
-import { useT } from "@/i18n";
+import { useLocale, useT } from "@/i18n";
 import { fetchDirectory, fetchRegistryChain } from "@/lib/chains/registry";
 import { bech32ConfigFromPrefix, keyAlgoOf, type ChainInfo } from "@/lib/chains/types";
 import { validateChainInfo } from "@/lib/chains/validate";
 import { probeRest, probeRpc } from "@/lib/cosmos/rest";
 import { isBuiltinChain, useAllChains, useChainsStore } from "@/state/chains";
+import { useSortPref } from "@/state/settings";
+
+const CHAIN_SORTS = ["default", "nameAsc", "nameDesc", "enabled"] as const;
 
 export function ChainsPage() {
   const t = useT();
@@ -17,6 +21,14 @@ export function ChainsPage() {
   const { enabledChainIds, setEnabled, removeCustomChain } = useChainsStore();
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState<ChainInfo | null>(null);
+  const locale = useLocale();
+  const [sort, setSort] = useSortPref("chains", CHAIN_SORTS, "default");
+  const sorted = useMemo(() => {
+    if (sort === "default") return chains;
+    const byName = (a: ChainInfo, b: ChainInfo) => a.chainName.localeCompare(b.chainName, locale, { sensitivity: "base" });
+    const on = (c: ChainInfo) => (enabledChainIds.includes(c.chainId) ? 1 : 0);
+    return [...chains].sort((a, b) => (sort === "nameDesc" ? -byName(a, b) : sort === "enabled" ? on(b) - on(a) || byName(a, b) : byName(a, b)));
+  }, [chains, sort, locale, enabledChainIds]);
 
   return (
     <div className="space-y-6">
@@ -25,8 +37,11 @@ export function ChainsPage() {
         subtitle={t("chains.subtitle")}
         action={<Button icon={<Plus className="size-4" />} onClick={() => setAdding(true)}>{t("chains.add")}</Button>}
       />
+      <div className="flex justify-end">
+        <SortSelect value={sort} onChange={setSort} options={CHAIN_SORTS.map((v) => ({ value: v, label: t(`sort.${v}`) }))} />
+      </div>
       <Card className="divide-y divide-line">
-        {chains.map((c) => (
+        {sorted.map((c) => (
           <div key={c.chainId} className="flex items-center gap-3 px-5 py-3.5">
             <TokenIcon src={c.chainSymbolImageUrl} symbol={c.chainName} />
             <div className="min-w-0 flex-1">

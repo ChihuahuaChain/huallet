@@ -60,7 +60,7 @@ export function useTxErrorText() {
   return (e: unknown) => {
     const code = explainTxError(e);
     const key = `tx.error.${code}` as MessageKey;
-    const known = ["insufficient-funds", "account-not-found", "out-of-gas", "timeout", "network", "rejected"];
+    const known = ["insufficient-funds", "account-not-found", "out-of-gas", "epoch-transition", "timeout", "network", "rejected"];
     return known.includes(code) ? t(key) : code;
   };
 }

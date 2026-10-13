@@ -33,6 +33,7 @@ import {
   type SplitRouteSwapExactAmountInValue,
   type SwapExactAmountInValue,
 } from "../dex/msgOsmosis";
+import { mixnetAction } from "../nym/mixnet";
 import { createAuthzAminoConverters } from "./authzAmino";
 import { restPost, type VoteOption } from "./rest";
 
@@ -381,6 +382,15 @@ export function summarize(m: EncodeObject): MsgSummary {
           coins: [{ denom: `cw20:${exec.contract}`, amount: parsed.transfer.amount }],
         };
       }
+      const nym = mixnetAction(exec.contract, raw);
+      if (nym) {
+        return {
+          kind: nym.kind,
+          typeUrl: m.typeUrl,
+          fields: { node: `#${nym.nodeId}` },
+          coins: exec.funds.length ? exec.funds.map((c) => ({ denom: c.denom, amount: c.amount })) : undefined,
+        };
+      }
       return {
         kind: "contract-execute",
         typeUrl: m.typeUrl,
@@ -477,6 +487,7 @@ export function explainTxError(e: unknown): string {
   if (/insufficient funds|insufficient fee|spendable balance .* is smaller/i.test(s)) return "insufficient-funds";
   if (/account .* not found/i.test(s)) return "account-not-found";
   if (/out of gas/i.test(s)) return "out-of-gas";
+  if (/epoch .*(being advanced|advancement)|EpochAdvancement/i.test(s)) return "epoch-transition";
   if (/request rejected|rejected by user|user denied|cancel/i.test(s)) return "rejected";
   if (/timed out|timeout/i.test(s)) return "timeout";
   if (/failed to fetch|network|ECONN|Load failed/i.test(s)) return "network";

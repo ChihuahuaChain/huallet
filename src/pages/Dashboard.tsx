@@ -7,6 +7,7 @@ import { requestTx } from "@/components/TxModal";
 import { Alert, Badge, Button, Card, CardHeader, EmptyState, Input, Skeleton, TokenIcon, Toggle, cx } from "@/components/ui";
 import { Mascot } from "@/components/Logo";
 import { PromoCards } from "@/components/PromoCards";
+import { SortSelect } from "@/components/SortSelect";
 import { useAccountChains, usePortfolio, usePrices } from "@/hooks/queries";
 import { useStakingOverview, type ChainStaking } from "@/hooks/useStakingOverview";
 import { useLocale, useT } from "@/i18n";
@@ -15,7 +16,7 @@ import { formatFiat, toNumber } from "@/lib/format";
 import { msg } from "@/lib/cosmos/tx";
 import { useChainsStore } from "@/state/chains";
 import { assetKey, useHiddenAssets } from "@/state/hiddenAssets";
-import { SMALL_BALANCE, useSettings } from "@/state/settings";
+import { SMALL_BALANCE, useSettings, useSortPref } from "@/state/settings";
 
 export function claimAll(s: ChainStaking, title: string) {
   if (!s.address || s.validatorsWithRewards.length === 0) return;
@@ -49,6 +50,8 @@ function Stat({ label, children, icon }: { label: string; children: React.ReactN
   );
 }
 
+const ASSET_SORTS = ["value", "nameAsc", "nameDesc", "chain", "verified", "unverified"] as const;
+
 export function Dashboard() {
   const t = useT();
   const locale = useLocale();
@@ -61,6 +64,7 @@ export function Dashboard() {
   const portfolio = usePortfolio();
   const staking = useStakingOverview(chains);
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useSortPref("assets", ASSET_SORTS, "value");
 
   const geckoIds = useMemo(
     () => [...portfolio.flatMap((p) => p.balances.map((b) => b.asset.coinGeckoId ?? "")), ...chains.map((c) => stakeCurrencyOf(c).coinGeckoId ?? "")].filter(Boolean),
@@ -104,7 +108,19 @@ export function Dashboard() {
     .filter((r) => !hideSmallBalances || r.value === undefined || r.value >= SMALL_BALANCE[fiat])
     .filter((r) => !hideUnverified || r.b.asset.verified || r.b.asset.bridged)
     .filter((r) => !q || r.b.asset.coinDenom.toLowerCase().includes(q) || r.chain.chainName.toLowerCase().includes(q))
-    .sort((a, b) => (b.value ?? -1) - (a.value ?? -1));
+    .sort((a, b) => {
+      const byValue = (b.value ?? -1) - (a.value ?? -1);
+      const byName = a.b.asset.coinDenom.localeCompare(b.b.asset.coinDenom, locale, { sensitivity: "base" });
+      const trusted = (r: typeof a) => (r.b.asset.verified || r.b.asset.bridged ? 1 : 0);
+      switch (sort) {
+        case "nameAsc": return byName || byValue;
+        case "nameDesc": return -byName || byValue;
+        case "chain": return a.chain.chainName.localeCompare(b.chain.chainName, locale, { sensitivity: "base" }) || byValue;
+        case "verified": return trusted(b) - trusted(a) || byValue;
+        case "unverified": return trusted(a) - trusted(b) || byValue;
+        default: return byValue;
+      }
+    });
   const visible = filtered.filter((r) => !hiddenSet.has(assetKey(r.chain.chainId, r.b.denom)));
   const hiddenRows = filtered.filter((r) => hiddenSet.has(assetKey(r.chain.chainId, r.b.denom)));
 
@@ -209,7 +225,12 @@ export function Dashboard() {
               </div>
             }
           />
-          <div className="px-5 pt-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-2">
+            <SortSelect
+              value={sort}
+              onChange={setSort}
+              options={ASSET_SORTS.map((v) => ({ value: v, label: t(`sort.${v}`) }))}
+            />
             <Toggle checked={hideSmallBalances} onChange={(v) => set({ hideSmallBalances: v })} label={<span className="text-xs text-muted">{t("dashboard.hideSmall", { n: SMALL_BALANCE[fiat], currency: fiat.toUpperCase() })}</span>} />
           </div>
           <div className="divide-y divide-line px-2 pb-2">

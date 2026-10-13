@@ -15,6 +15,7 @@ import { Connect } from "@/pages/Connect";
 import { Dashboard } from "@/pages/Dashboard";
 import { StakeOverview } from "@/pages/StakeOverview";
 import { StakeChain } from "@/pages/StakeChain";
+import { NymStake } from "@/pages/NymStake";
 import { SendPage } from "@/pages/Send";
 import { SwapPage } from "@/pages/Swap";
 import { ReceivePage } from "@/pages/Receive";
@@ -75,6 +76,7 @@ const router = createHashRouter([
           { index: true, element: <Dashboard /> },
           { path: "stake", element: <StakeOverview /> },
           { path: "stake/:chainId", element: <StakeChain /> },
+          { path: "stake/nyx/nym", element: <NymStake /> },
           { path: "swap", element: <SwapPage /> },
           { path: "send", element: <SendPage /> },
           { path: "receive", element: <ReceivePage /> },

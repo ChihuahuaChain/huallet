@@ -23,6 +23,7 @@ import { SwapPage } from "@/pages/Swap";
 import { AddressBookSettings } from "@/pages/settings/AddressBook";
 import { TokensSettings } from "@/pages/settings/Tokens";
 import { StakeChain } from "@/pages/StakeChain";
+import { NymStake } from "@/pages/NymStake";
 import { StakeOverview } from "@/pages/StakeOverview";
 import { useWallet } from "@/state/wallet";
 import { AddAccount } from "../onboarding/AddAccount";
@@ -134,6 +135,7 @@ const router = createHashRouter([
           { index: true, element: <Dashboard /> },
           { path: "stake", element: <StakeOverview /> },
           { path: "stake/:chainId", element: <StakeChain /> },
+          { path: "stake/nyx/nym", element: <NymStake /> },
           { path: "swap", element: <SwapPage /> },
           { path: "send", element: <SendPage /> },
           { path: "receive", element: <ReceivePage /> },

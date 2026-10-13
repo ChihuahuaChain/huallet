@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { Amount, Fiat } from "@/components/Amount";
 import { PageHeader } from "@/components/layout/AppShell";
+import { SortSelect } from "@/components/SortSelect";
 import { requestTx } from "@/components/TxModal";
 import { Alert, Badge, Button, Card, CardHeader, EmptyState, Field, Input, Modal, Monogram, Select, Skeleton, Tabs, TokenIcon, cx } from "@/components/ui";
 import {
@@ -25,6 +26,8 @@ import type { RestakeOperator, Validator } from "@/lib/cosmos/rest";
 import { computeFee, msg, RESTAKE_GRANT_DURATION_SECONDS } from "@/lib/cosmos/tx";
 import { formatDateTime, formatPercent, fromBaseUnits, timeUntil, toBaseUnits, toNumber } from "@/lib/format";
 import { useAllChains } from "@/state/chains";
+import { NymStakeEntry } from "./NymStake";
+import { useSortPref } from "@/state/settings";
 
 const STAKE_AUTHORIZATION_TYPE = "/cosmos.staking.v1beta1.StakeAuthorization";
 
@@ -60,6 +63,8 @@ function safeUrl(u?: string): string | undefined {
   }
 }
 
+const VALIDATOR_SORTS = ["power", "commission", "nameAsc", "nameDesc"] as const;
+
 function feeReserve(chain: ChainInfo): bigint {
   return BigInt(computeFee(feeCurrencyOf(chain), "high", 400_000).amount[0].amount);
 }
@@ -90,7 +95,7 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
 
   const [filter, setFilter] = useState<"active" | "inactive">("active");
   const [search, setSearch] = useState("");
-  const [sort, setSort] = useState<"power" | "commission" | "name">("power");
+  const [sort, setSort] = useSortPref("validators", VALIDATOR_SORTS, "power");
   const [action, setAction] = useState<{ mode: Mode; validator: Validator } | null>(null);
   const [restake, setRestake] = useState<{ operator: RestakeOperator; valoper: string; active: boolean } | null>(null);
 
@@ -119,7 +124,8 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
       .filter((v) => !q || v.description.moniker.toLowerCase().includes(q) || v.operator_address.includes(q))
       .sort((a, b) => {
         if (sort === "commission") return Number(a.commission.commission_rates.rate) - Number(b.commission.commission_rates.rate);
-        if (sort === "name") return a.description.moniker.localeCompare(b.description.moniker);
+        if (sort === "nameAsc") return a.description.moniker.localeCompare(b.description.moniker, undefined, { sensitivity: "base" });
+        if (sort === "nameDesc") return b.description.moniker.localeCompare(a.description.moniker, undefined, { sensitivity: "base" });
         return BigInt(b.tokens) > BigInt(a.tokens) ? 1 : -1;
       });
   }, [validators.data, filter, search, sort]);
@@ -179,6 +185,8 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
           </span>
         }
       />
+
+      <NymStakeEntry chains={[chain]} />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="p-5">
@@ -299,11 +307,17 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
           <div className="min-w-48 flex-1">
             <Input className="h-9" placeholder={t("stake.searchValidator")} value={search} onChange={(e) => setSearch(e.target.value)} right={<Search className="mr-2 size-4 text-muted" />} />
           </div>
-          <Select className="h-9 w-auto! min-w-40" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} aria-label={t("common.sort")}>
-            <option value="power">{t("stake.sort.power")}</option>
-            <option value="commission">{t("stake.sort.commission")}</option>
-            <option value="name">{t("stake.sort.name")}</option>
-          </Select>
+          <SortSelect
+            className="h-9 w-auto! min-w-40"
+            value={sort}
+            onChange={setSort}
+            options={[
+              { value: "power", label: t("stake.sort.power") },
+              { value: "commission", label: t("stake.sort.commission") },
+              { value: "nameAsc", label: t("sort.nameAsc") },
+              { value: "nameDesc", label: t("sort.nameDesc") },
+            ]}
+          />
         </div>
         <div className="mt-2 divide-y divide-line p-2">
           {validators.isLoading && [0, 1, 2, 3].map((i) => <Skeleton key={i} className="m-3 h-12" />)}
