@@ -5,7 +5,7 @@ import { Badge, Button, Card, CardHeader, Field, Select, Toggle } from "@/compon
 import { useWallet } from "@/state/wallet";
 import { useT } from "@/i18n";
 import { extApi } from "@/lib/kv";
-import { useSettings, type Fiat, type Theme } from "@/state/settings";
+import { SMALL_BALANCE, useSettings, type Fiat, type Theme } from "@/state/settings";
 
 const sidePanelSupported = typeof (extApi() as unknown as { sidePanel?: unknown })?.sidePanel !== "undefined";
 
@@ -44,6 +44,7 @@ export function GeneralSettings() {
               <option value="eur">EUR</option>
               <option value="chf">CHF</option>
               <option value="gbp">GBP</option>
+              <option value="jpy">JPY</option>
             </Select>
           </Field>
           <Field label={t("settings.theme")}>
@@ -56,7 +57,7 @@ export function GeneralSettings() {
         </div>
         <div className="divide-y divide-line">
           <div className="py-3"><Toggle checked={s.showPrices} onChange={(v) => s.set({ showPrices: v })} label={t("settings.prices")} description={t("settings.pricesBody")} /></div>
-          <div className="py-3"><Toggle checked={s.hideSmallBalances} onChange={(v) => s.set({ hideSmallBalances: v })} label={t("dashboard.hideSmall", { currency: s.fiat.toUpperCase() })} /></div>
+          <div className="py-3"><Toggle checked={s.hideSmallBalances} onChange={(v) => s.set({ hideSmallBalances: v })} label={t("dashboard.hideSmall", { n: SMALL_BALANCE[s.fiat], currency: s.fiat.toUpperCase() })} /></div>
           <div className="py-3"><Toggle checked={s.hideUnverified} onChange={(v) => s.set({ hideUnverified: v })} label={t("settings.hideUnverified")} description={t("settings.hideUnverifiedBody")} /></div>
           <div className="py-3"><Toggle checked={s.hideBalances} onChange={(v) => s.set({ hideBalances: v })} label={t("settings.privacy")} description={t("settings.privacyBody")} /></div>
           <div className="py-3"><Toggle checked={s.showPromotions} onChange={s.setShowPromotions} label={t("settings.promotions")} description={t("settings.promotionsBody")} /></div>

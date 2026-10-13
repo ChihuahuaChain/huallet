@@ -29,6 +29,8 @@ export interface TxRequest {
   memo?: string;
   title: string;
   denomInfo?: Record<string, { symbol: string; decimals: number }>;
+  /** Fee-denom amount the tx itself credits before it spends (e.g. rewards claimed in the same tx). */
+  credit?: bigint;
   onSuccess?: (r: BroadcastResult) => void;
 }
 
@@ -152,7 +154,10 @@ function TxModal({ request, onClose }: { request: TxRequest; onClose: () => void
     .flatMap((s) => s.coins ?? [])
     .filter((c) => c.denom === feeCur.coinMinimalDenom)
     .reduce((a, c) => a + BigInt(c.amount), 0n);
-  const insufficient = !!fee && feeBalance < feeAmount + spent;
+  // The fee is deducted before any message runs, so it must come from the current balance alone;
+  // amounts the tx spends may also be covered by what it credits first.
+  const credit = request.credit ?? 0n;
+  const insufficient = !!fee && (feeBalance < feeAmount || feeBalance + credit < feeAmount + spent);
 
   const approve = async () => {
     if (!backend || !fee) return;

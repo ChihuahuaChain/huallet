@@ -2,7 +2,10 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { appStateStorage } from "@/lib/kv";
 
-export type Fiat = "usd" | "eur" | "chf" | "gbp";
+export type Fiat = "usd" | "eur" | "chf" | "gbp" | "jpy";
+
+/** "Hide small balances" cut-off per currency, roughly one US dollar. */
+export const SMALL_BALANCE: Record<Fiat, number> = { usd: 1, eur: 1, chf: 1, gbp: 1, jpy: 100 };
 export type Theme = "system" | "light" | "dark";
 
 export interface SettingsState {

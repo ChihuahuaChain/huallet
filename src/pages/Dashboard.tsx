@@ -15,7 +15,7 @@ import { formatFiat, toNumber } from "@/lib/format";
 import { msg } from "@/lib/cosmos/tx";
 import { useChainsStore } from "@/state/chains";
 import { assetKey, useHiddenAssets } from "@/state/hiddenAssets";
-import { useSettings } from "@/state/settings";
+import { SMALL_BALANCE, useSettings } from "@/state/settings";
 
 export function claimAll(s: ChainStaking, title: string) {
   if (!s.address || s.validatorsWithRewards.length === 0) return;
@@ -101,7 +101,7 @@ export function Dashboard() {
   const q = query.trim().toLowerCase();
   const hiddenSet = new Set(hidden);
   const filtered = rows
-    .filter((r) => !hideSmallBalances || r.value === undefined || r.value >= 1)
+    .filter((r) => !hideSmallBalances || r.value === undefined || r.value >= SMALL_BALANCE[fiat])
     .filter((r) => !hideUnverified || r.b.asset.verified || r.b.asset.bridged)
     .filter((r) => !q || r.b.asset.coinDenom.toLowerCase().includes(q) || r.chain.chainName.toLowerCase().includes(q))
     .sort((a, b) => (b.value ?? -1) - (a.value ?? -1));
@@ -210,7 +210,7 @@ export function Dashboard() {
             }
           />
           <div className="px-5 pt-2">
-            <Toggle checked={hideSmallBalances} onChange={(v) => set({ hideSmallBalances: v })} label={<span className="text-xs text-muted">{t("dashboard.hideSmall", { currency: fiat.toUpperCase() })}</span>} />
+            <Toggle checked={hideSmallBalances} onChange={(v) => set({ hideSmallBalances: v })} label={<span className="text-xs text-muted">{t("dashboard.hideSmall", { n: SMALL_BALANCE[fiat], currency: fiat.toUpperCase() })}</span>} />
           </div>
           <div className="divide-y divide-line px-2 pb-2">
             {loading && rows.length === 0 &&

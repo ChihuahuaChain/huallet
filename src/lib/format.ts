@@ -38,8 +38,10 @@ export function formatAmount(
 }
 
 export function formatFiat(value: number, currency: string, locale?: string): string {
-  const digits = value !== 0 && Math.abs(value) < 0.01 ? 4 : 2;
-  return new Intl.NumberFormat(locale, { style: "currency", currency: currency.toUpperCase(), minimumFractionDigits: 2, maximumFractionDigits: digits }).format(value);
+  // The currency's own minor units (2 for USD, 0 for JPY), widened by two for sub-cent amounts.
+  const minor = new Intl.NumberFormat(locale, { style: "currency", currency: currency.toUpperCase() }).resolvedOptions().maximumFractionDigits ?? 2;
+  const digits = value !== 0 && Math.abs(value) < 10 ** -minor ? minor + 2 : minor;
+  return new Intl.NumberFormat(locale, { style: "currency", currency: currency.toUpperCase(), minimumFractionDigits: minor, maximumFractionDigits: digits }).format(value);
 }
 
 export function formatPercent(value: number, locale?: string, digits = 2): string {

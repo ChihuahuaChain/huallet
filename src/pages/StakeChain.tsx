@@ -146,11 +146,18 @@ function StakeChainInner({ chain }: { chain: ChainInfo }) {
     requestTx({ chain, title: t("stake.claimTitle", { chain: chain.chainName }), msgs: vals.map((v) => msg.withdrawRewards(address, v)) });
   const claimRestake = (vals: string[]) => {
     if (!address) return;
+    // The shortfall is held back once across the whole batch, not once per validator.
+    let held = restakeShortfall;
     const msgs = vals.flatMap((v) => {
-      const amt = restakeAmountOf(rewardOf(v));
+      const r = rewardOf(v);
+      const keep = r < held ? r : held;
+      held -= keep;
+      const amt = r - keep;
       return amt > 0n ? msg.claimAndRestake(address, v, cur.coinMinimalDenom, amt) : [];
     });
-    if (msgs.length) requestTx({ chain, title: t("stake.claimRestakeTitle", { chain: chain.chainName }), msgs });
+    // Claimed rewards land before the delegations run, so they fund the re-stake themselves.
+    const credit = sameFeeDenom ? vals.reduce((s, v) => s + rewardOf(v), 0n) : 0n;
+    if (msgs.length) requestTx({ chain, title: t("stake.claimRestakeTitle", { chain: chain.chainName }), msgs, credit });
   };
 
   return (

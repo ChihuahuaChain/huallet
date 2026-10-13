@@ -31,7 +31,7 @@ import { Card, CardHeader, Select, Switch, cx } from "@/components/ui";
 import { LANGUAGES, useT, type MessageKey } from "@/i18n";
 import { extApi } from "@/lib/kv";
 import { WrongPasswordError } from "@/lib/crypto/vault";
-import { useSettings, type Fiat, type Theme } from "@/state/settings";
+import { SMALL_BALANCE, useSettings, type Fiat, type Theme } from "@/state/settings";
 import { version } from "../../../package.json";
 import { keyring } from "../popup/keyring";
 import { isMobileView } from "../popup/view";
@@ -146,6 +146,7 @@ export function SettingsHome() {
               <option value="eur">EUR</option>
               <option value="chf">CHF</option>
               <option value="gbp">GBP</option>
+              <option value="jpy">JPY</option>
             </Select>
           }
         />
@@ -164,7 +165,7 @@ export function SettingsHome() {
           <Row icon={<PanelRight className={icon} />} label={t("settings.sidePanel")} control={<Switch checked={s.sidePanel} onChange={(v) => s.set({ sidePanel: v })} aria-label={t("settings.sidePanel")} />} />
         )}
         <Row icon={<Tag className={icon} />} label={t("settings.prices")} control={<Switch checked={s.showPrices} onChange={(v) => s.set({ showPrices: v })} aria-label={t("settings.prices")} />} />
-        <Row icon={<Filter className={icon} />} label={t("dashboard.hideSmall", { currency: s.fiat.toUpperCase() })} control={<Switch checked={s.hideSmallBalances} onChange={(v) => s.set({ hideSmallBalances: v })} aria-label={t("dashboard.hideSmall", { currency: s.fiat.toUpperCase() })} />} />
+        <Row icon={<Filter className={icon} />} label={t("dashboard.hideSmall", { n: SMALL_BALANCE[s.fiat], currency: s.fiat.toUpperCase() })} control={<Switch checked={s.hideSmallBalances} onChange={(v) => s.set({ hideSmallBalances: v })} aria-label={t("dashboard.hideSmall", { n: SMALL_BALANCE[s.fiat], currency: s.fiat.toUpperCase() })} />} />
         <Row icon={<ShieldQuestion className={icon} />} label={t("settings.hideUnverified")} control={<Switch checked={s.hideUnverified} onChange={(v) => s.set({ hideUnverified: v })} aria-label={t("settings.hideUnverified")} />} />
         <Row icon={<EyeOff className={icon} />} label={t("settings.privacy")} control={<Switch checked={s.hideBalances} onChange={(v) => s.set({ hideBalances: v })} aria-label={t("settings.privacy")} />} />
         {!isMobileView() && (
