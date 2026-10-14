@@ -1,0 +1,5 @@
+- Sortable lists for balances, validators and transactions
+- Stake NYM on Nym nodes
+- Fix Claim & Restake balance check; clearer Auto-Restake wording
+- Japanese yen (JPY) as a fiat display currency
+- News cards from the shared Chihuahua feed, with auto-rotation
