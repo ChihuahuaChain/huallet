@@ -21,6 +21,14 @@ export const keyring = {
   markBackedUp: (id: string) => after(bg({ type: "markBackedUp", id })),
   removeKey: (id: string, password: string) => after(bg({ type: "removeKey", id, password })),
   revealSecret: (id: string, password: string) => bg<string>({ type: "revealSecret", id, password }),
+  exportKeys: (password: string) => bg<Required<NewKey>[]>({ type: "exportKeys", password }),
+  importKeys: (keys: NewKey[]) => after(bg<{ added: KeyMeta[]; skipped: number }>({ type: "importKeys", keys })),
+  /** First run from a transfer: the wallet is created with the first account, the rest follow. */
+  createWithKeys: async (password: string, keys: NewKey[]) => {
+    await bg<KeyMeta>({ type: "create", password, key: keys[0] });
+    if (keys.length > 1) await bg({ type: "importKeys", keys: keys.slice(1) });
+    await refresh();
+  },
   pendingBackupSecret: (id: string) => bg<string>({ type: "pendingBackupSecret", id }),
   changePassword: async (oldPassword: string, newPassword: string) => {
     await bg({ type: "changePassword", oldPassword, newPassword });

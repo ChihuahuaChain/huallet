@@ -25,6 +25,12 @@ export function AddAccount() {
           toast.success(t("accounts.added"), meta.name);
           navigate("/");
         }}
+        onCompleteMany={async (keys) => {
+          const { added, skipped } = await keyring.importKeys(keys);
+          if (!added.length) throw new Error(t("transfer.import.noneNew"));
+          toast.success(t("transfer.import.done", { n: added.length }), skipped ? t("transfer.import.skipped", { n: skipped }) : undefined);
+          navigate("/");
+        }}
       />
     </div>
   );

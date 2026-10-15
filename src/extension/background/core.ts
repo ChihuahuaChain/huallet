@@ -441,6 +441,13 @@ export function createWalletCore(platform: Platform) {
         return null;
       case "revealSecret":
         return keyring.revealSecret(req.id, req.password);
+      case "exportKeys":
+        return keyring.exportKeys(req.password);
+      case "importKeys": {
+        const r = await keyring.importKeys(req.keys);
+        if (r.added.length) await broadcastKeystoreChange();
+        return r;
+      }
       case "pendingBackupSecret":
         return keyring.pendingBackupSecret(req.id);
       case "changePassword":

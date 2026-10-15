@@ -4,14 +4,33 @@ import { createPortal } from "react-dom";
 import { useT } from "@/i18n";
 import { screenApi } from "@/lib/native";
 
+function qrPath(value: string) {
+  const qr = QRCode.create(value, { errorCorrectionLevel: "M" });
+  const n = qr.modules.size;
+  let d = "";
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (qr.modules.get(x, y)) d += `M${x} ${y}h1v1h-1z`;
+  return { n, path: d };
+}
+
 function useQrPath(value: string) {
-  return useMemo(() => {
-    const qr = QRCode.create(value, { errorCorrectionLevel: "M" });
-    const n = qr.modules.size;
-    let d = "";
-    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (qr.modules.get(x, y)) d += `M${x} ${y}h1v1h-1z`;
-    return { n, path: d };
-  }, [value]);
+  return useMemo(() => qrPath(value), [value]);
+}
+
+/** A QR code that loops through `frames`, for payloads too large for one code. */
+export function AnimatedQr({ frames, intervalMs = 200 }: { frames: string[]; intervalMs?: number }) {
+  const paths = useMemo(() => frames.map(qrPath), [frames]);
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    setI(0);
+    if (frames.length < 2) return;
+    const timer = setInterval(() => setI((x) => (x + 1) % frames.length), intervalMs);
+    return () => clearInterval(timer);
+  }, [frames, intervalMs]);
+  return (
+    <div className="aspect-square w-full max-w-[min(100%,360px)] rounded-2xl bg-white p-3">
+      <QrSvg {...paths[i % paths.length]} />
+    </div>
+  );
 }
 
 function QrSvg({ n, path }: { n: number; path: string }) {

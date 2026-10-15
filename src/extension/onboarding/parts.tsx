@@ -252,12 +252,15 @@ export function NameAndPassword({
   onSubmit,
   onBack,
   defaultName,
+  withName = true,
 }: {
   withPassword: boolean;
   submitLabel: string;
   onSubmit: (name: string, password: string) => Promise<void>;
   onBack?: () => void;
   defaultName: string;
+  /** False when the names are already known (accounts transferred from another device). */
+  withName?: boolean;
 }) {
   const t = useT();
   const [name, setName] = useState(defaultName);
@@ -284,9 +287,11 @@ export function NameAndPassword({
   return (
     <form onSubmit={submit} className="space-y-5">
       <h2 className="text-xl font-semibold">{withPassword ? t("onboarding.password.title") : t("onboarding.name.title")}</h2>
-      <Field label={t("onboarding.name.label")}>
-        <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} autoComplete="off" />
-      </Field>
+      {withName && (
+        <Field label={t("onboarding.name.label")}>
+          <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} autoComplete="off" />
+        </Field>
+      )}
       {withPassword && (
         <>
           <Field label={t("onboarding.password.label")} hint={t("onboarding.password.hint")}>

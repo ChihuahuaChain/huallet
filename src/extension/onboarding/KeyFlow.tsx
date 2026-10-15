@@ -1,32 +1,53 @@
-import { Download, Sparkles, Usb } from "lucide-react";
+import { Download, MonitorSmartphone, Sparkles, Usb } from "lucide-react";
 import { useState } from "react";
 import { Card } from "@/components/ui";
 import { useT } from "@/i18n";
 import type { NewKey } from "@/lib/keyring/keyring";
+import { canScanQr } from "@/lib/native";
+import { ImportTransfer } from "./ImportTransfer";
 import { LedgerConnect } from "./LedgerConnect";
 import { ImportSecret, NameAndPassword, ShowMnemonic, VerifyMnemonic } from "./parts";
 
-type Step = "choose" | "show" | "verify" | "import" | "ledger" | "finish";
+type Step = "choose" | "show" | "verify" | "import" | "ledger" | "finish" | "transfer" | "transferPassword";
 
 export function KeyFlow({
   withPassword,
   defaultName,
   onComplete,
+  onCompleteMany,
   onCancel,
 }: {
   withPassword: boolean;
   defaultName: string;
   onComplete: (key: NewKey, password: string) => Promise<void>;
+  /** Accounts transferred from another Huallet; offered only where the camera can scan. */
+  onCompleteMany?: (keys: NewKey[], password: string) => Promise<void>;
   onCancel?: () => void;
 }) {
   const t = useT();
   const [step, setStep] = useState<Step>("choose");
   const [pending, setPending] = useState<Omit<NewKey, "name"> | null>(null);
   const [mnemonic, setMnemonic] = useState("");
+  const [transferred, setTransferred] = useState<NewKey[] | null>(null);
+  const canTransfer = !!onCompleteMany && canScanQr();
 
   if (step === "choose") {
     return (
       <div className="grid gap-3 sm:grid-cols-2">
+        {/* First on the phone: most people set Huallet up on the computer first. */}
+        {canTransfer && (
+          <button onClick={() => setStep("transfer")} className="group text-left sm:col-span-2">
+            <Card className="flex h-full items-center gap-4 p-5 transition-colors group-hover:border-rust">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-huahua-300 text-ink">
+                <MonitorSmartphone className="size-5" />
+              </div>
+              <div>
+                <div className="font-display text-lg font-semibold">{t("transfer.import.choose")}</div>
+                <p className="mt-0.5 text-sm text-muted">{t("transfer.import.chooseBody")}</p>
+              </div>
+            </Card>
+          </button>
+        )}
         <button onClick={() => setStep("show")} className="group text-left">
           <Card className="h-full p-5 transition-colors group-hover:border-rust">
             <div className="mb-3 flex size-11 items-center justify-center rounded-xl bg-huahua-300 text-ink">
@@ -106,6 +127,30 @@ export function KeyFlow({
             setPending(k);
             setStep("finish");
           }}
+        />
+      )}
+      {step === "transfer" && onCompleteMany && (
+        <ImportTransfer
+          onBack={() => setStep("choose")}
+          confirmLabel={withPassword ? () => t("common.continue") : undefined}
+          onKeys={async (keys) => {
+            if (withPassword) {
+              setTransferred(keys);
+              setStep("transferPassword");
+            } else {
+              await onCompleteMany(keys, "");
+            }
+          }}
+        />
+      )}
+      {step === "transferPassword" && transferred && onCompleteMany && (
+        <NameAndPassword
+          withPassword
+          withName={false}
+          defaultName={transferred[0].name}
+          submitLabel={t("onboarding.password.submit")}
+          onBack={() => setStep("transfer")}
+          onSubmit={(_name, password) => onCompleteMany(transferred, password)}
         />
       )}
       {step === "finish" && pending && (

@@ -16,12 +16,14 @@ import {
   Languages,
   Lock,
   Megaphone,
+  MonitorSmartphone,
   Network,
   Palette,
   PanelRight,
   ShieldQuestion,
   Tag,
   Trash2,
+  Users,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
@@ -35,6 +37,7 @@ import { SMALL_BALANCE, useSettings, type Fiat, type Theme } from "@/state/setti
 import { version } from "../../../package.json";
 import { keyring } from "../popup/keyring";
 import { isMobileView } from "../popup/view";
+import { ExportToPhoneFlow } from "./ExportToPhone";
 import { PasswordPrompt } from "../PasswordPrompt";
 import { useSelectedKey } from "../state/keyringStore";
 import { BiometricCard } from "./Security";
@@ -101,6 +104,7 @@ export function SettingsHome() {
   const qc = useQueryClient();
   const key = useSelectedKey();
   const [resetOpen, setResetOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const icon = "size-4";
   return (
@@ -117,6 +121,12 @@ export function SettingsHome() {
           <ChevronRight className="size-4 shrink-0 text-muted" />
         </Link>
       )}
+
+      <Section title={t("settings.accounts")}>
+        <Row icon={<Users className={icon} />} label={t("accounts.manage")} to="/settings/accounts" />
+        {!isMobileView() && <Row icon={<MonitorSmartphone className={icon} />} label={t("transfer.export.button")} onClick={() => setExporting(true)} />}
+      </Section>
+      <ExportToPhoneFlow open={exporting} onClose={() => setExporting(false)} />
 
       <Section title={t("settings.sectionChains")}>
         <Row icon={<Network className={icon} />} label={t("nav.chains")} to="/chains" />

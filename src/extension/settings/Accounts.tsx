@@ -10,6 +10,8 @@ import { hdPathFor, type KeyMeta } from "@/lib/keyring/keyring";
 import { keyring } from "@/extension/popup/keyring";
 import { useKeyring as useWallet } from "@/extension/state/keyringStore";
 import { PasswordPrompt } from "@/extension/PasswordPrompt";
+import { isMobileView } from "@/extension/popup/view";
+import { ExportToPhone } from "./ExportToPhone";
 
 export function AccountsSettings() {
   const t = useT();
@@ -55,6 +57,12 @@ export function AccountsSettings() {
           ))}
         </div>
       </Card>
+
+      {!isMobileView() && (
+        <div className="mt-4">
+          <ExportToPhone />
+        </div>
+      )}
 
       <Modal
         open={!!renaming}

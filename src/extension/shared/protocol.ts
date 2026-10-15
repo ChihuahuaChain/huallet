@@ -45,6 +45,8 @@ export type UiRequest =
   | { type: "markBackedUp"; id: string }
   | { type: "removeKey"; id: string; password: string }
   | { type: "revealSecret"; id: string; password: string }
+  | { type: "exportKeys"; password: string }
+  | { type: "importKeys"; keys: NewKey[] }
   | { type: "pendingBackupSecret"; id: string }
   | { type: "changePassword"; oldPassword: string; newPassword: string }
   | { type: "verifyPassword"; password: string }

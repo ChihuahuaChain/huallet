@@ -314,6 +314,34 @@ export class Keyring {
     return toMeta(stored);
   }
 
+  /** Every account with its secret, for moving them to another device. Needs the password. */
+  async exportKeys(password: string): Promise<Required<NewKey>[]> {
+    const c = await this.requireUnlocked();
+    await this.requirePassword(password);
+    return c.keys.map((k) => ({ name: k.name, type: k.type, secret: k.secret, hdAccount: k.hdAccount, hdIndex: k.hdIndex, backedUp: k.backedUp }));
+  }
+
+  /** Adds several accounts at once; ones already present are skipped, not errors. */
+  async importKeys(keys: NewKey[]): Promise<{ added: KeyMeta[]; skipped: number }> {
+    const c = await this.requireUnlocked();
+    const added: StoredKey[] = [];
+    let skipped = 0;
+    for (const k of keys) {
+      const stored = toStored(k);
+      const dup = c.keys.some(
+        (x) => x.type === stored.type && x.secret === stored.secret && x.hdAccount === stored.hdAccount && x.hdIndex === stored.hdIndex,
+      );
+      if (dup) {
+        skipped++;
+        continue;
+      }
+      c.keys.push(stored);
+      added.push(stored);
+    }
+    if (added.length) await this.persist();
+    return { added: added.map(toMeta), skipped };
+  }
+
   async renameKey(id: string, name: string): Promise<void> {
     const k = (await this.requireUnlocked()).keys.find((x) => x.id === id);
     if (!k) throw new Error("Account not found");

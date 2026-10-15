@@ -28,7 +28,12 @@ export function Onboarding() {
           </div>
           <h2 className="mb-1 text-3xl font-bold">{t("onboarding.welcomeTo")} Hua<span className="text-rust">llet</span></h2>
           <p className="mb-6 text-muted">{t("onboarding.welcomeBody")}</p>
-          <KeyFlow withPassword defaultName={t("accounts.defaultName", { n: 1 })} onComplete={async (key, password) => void (await keyring.create(password, key))} />
+          <KeyFlow
+            withPassword
+            defaultName={t("accounts.defaultName", { n: 1 })}
+            onComplete={async (key, password) => void (await keyring.create(password, key))}
+            onCompleteMany={(keys, password) => keyring.createWithKeys(password, keys)}
+          />
         </div>
       </section>
     </div>
