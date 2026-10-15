@@ -1,0 +1,4 @@
+- In-app browser on Android: open Woof Morning, Huahua P2P, Dogtags and Predict from the new Apps tab and sign with Huallet
+- Move accounts from the computer to the phone with an animated QR code and a one-time code
+- Import from computer offered first when setting up the phone
+- Bottom tabs fit six labels on narrow phones
