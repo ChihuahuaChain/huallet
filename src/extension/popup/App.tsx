@@ -11,6 +11,7 @@ import { useHydrated } from "@/hooks/useHydrated";
 import { useTheme } from "@/hooks/useTheme";
 import { useSyncLanguage, useT } from "@/i18n";
 import { extApi } from "@/lib/kv";
+import { AppsPage } from "@/pages/Apps";
 import { ChainsPage } from "@/pages/Chains";
 import { Dashboard } from "@/pages/Dashboard";
 import { GovernancePage } from "@/pages/Governance";
@@ -133,6 +134,7 @@ const router = createHashRouter([
             errorElement: <RouteError />,
             children: [
           { index: true, element: <Dashboard /> },
+          { path: "apps", element: <AppsPage /> },
           { path: "stake", element: <StakeOverview /> },
           { path: "stake/:chainId", element: <StakeChain /> },
           { path: "stake/nyx/nym", element: <NymStake /> },

@@ -15,3 +15,22 @@ await build({
 });
 renameSync(join(out, "mobile.html"), join(out, "index.html"));
 console.log("✓ dist-mobile/");
+
+// The provider script injected into the in-app dApp browser's WebView. Built as
+// a self-contained IIFE straight into the Android assets, where DappPlugin reads
+// it at runtime and evaluates it in each browsed page.
+const assets = join(root, "android/app/src/main/assets");
+await build({
+  root,
+  configFile: false,
+  publicDir: false,
+  logLevel: "warn",
+  resolve: { alias: { "@": join(root, "src") } },
+  build: {
+    outDir: assets,
+    emptyOutDir: false,
+    target: "es2020",
+    lib: { entry: join(root, "src/mobile/dappInject.ts"), formats: ["iife"], name: "HualletDappInject", fileName: () => "dappInject.js" },
+  },
+});
+console.log("✓ android assets/dappInject.js");

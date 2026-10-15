@@ -105,5 +105,11 @@ declare global {
   }
 }
 
-Object.defineProperty(window, "huallet", { value: provider, configurable: false, writable: false });
-window.dispatchEvent(new Event("huallet#initialized"));
+// Idempotent: the extension injects this once per page, but the mobile dApp
+// browser may re-inject it on navigations within the same document. Defining a
+// non-configurable property twice would throw, so install the provider only
+// once.
+if (!window.huallet) {
+  Object.defineProperty(window, "huallet", { value: provider, configurable: false, writable: false });
+  window.dispatchEvent(new Event("huallet#initialized"));
+}

@@ -3,6 +3,7 @@ import {
   ArrowLeftRight,
   ChevronDown,
   Coins,
+  Compass,
   ExternalLink,
   History,
   Landmark,
@@ -19,6 +20,7 @@ import {
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useSwipeTabs } from "@/hooks/useSwipeTabs";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { isMobileView } from "@/extension/popup/view";
 import { useT, type MessageKey } from "@/i18n";
 import { useAddress, useChainSupported } from "@/hooks/queries";
 import { explorerAccountUrl } from "@/lib/chains/types";
@@ -31,10 +33,13 @@ import { TxModalHost } from "../TxModal";
 import { AddressAvatar } from "../AddressAvatar";
 import { Alert, Badge, CopyButton, TokenIcon, cx } from "../ui";
 
-const NAV: Array<{ to: string; key: MessageKey; icon: typeof LayoutDashboard; mobile?: boolean }> = [
+// `mobileOnly` entries (the in-app dApp browser) only exist on the Android app,
+// where the native plugin backing them is present.
+const NAV: Array<{ to: string; key: MessageKey; icon: typeof LayoutDashboard; mobile?: boolean; mobileOnly?: boolean }> = [
   { to: "/", key: "nav.dashboard", icon: LayoutDashboard, mobile: true },
   { to: "/stake", key: "nav.stake", icon: Coins, mobile: true },
   { to: "/swap", key: "nav.swap", icon: Repeat, mobile: true },
+  { to: "/apps", key: "nav.apps", icon: Compass, mobile: true, mobileOnly: true },
   { to: "/send", key: "nav.send", icon: Send },
   { to: "/receive", key: "nav.receive", icon: QrCode },
   { to: "/ibc", key: "nav.ibc", icon: ArrowLeftRight },
@@ -44,7 +49,9 @@ const NAV: Array<{ to: string; key: MessageKey; icon: typeof LayoutDashboard; mo
   { to: "/settings", key: "nav.settings", icon: Settings, mobile: true },
 ];
 
-const MOBILE_TABS = NAV.filter((n) => n.mobile).map((n) => n.to);
+function visibleNav() {
+  return NAV.filter((n) => !n.mobileOnly || isMobileView());
+}
 
 function useClickOutside(ref: React.RefObject<HTMLElement | null>, onOutside: () => void) {
   useEffect(() => {
@@ -199,7 +206,9 @@ export function AppShell({ menu = <WalletMenu />, compact = false }: { menu?: Re
   const localKeys = useWallet((s) => s.backend?.id.startsWith("local:") ?? false);
   const mainRef = useRef<HTMLElement>(null);
   const { pathname } = useLocation();
-  useSwipeTabs(mainRef, MOBILE_TABS);
+  const nav = visibleNav();
+  const mobileTabs = nav.filter((n) => n.mobile).map((n) => n.to);
+  useSwipeTabs(mainRef, mobileTabs);
 
   return (
     <div className="app-shell min-h-screen lg:flex">
@@ -210,7 +219,7 @@ export function AppShell({ menu = <WalletMenu />, compact = false }: { menu?: Re
           </Link>
         </div>
         <nav className="flex-1 space-y-0.5 px-3" aria-label="Main">
-          {NAV.map(({ to, key, icon: Icon }) => (
+          {nav.map(({ to, key, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
@@ -252,14 +261,16 @@ export function AppShell({ menu = <WalletMenu />, compact = false }: { menu?: Re
       </div>
 
       <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-surface/95 backdrop-blur lg:hidden" aria-label="Main">
-        {NAV.filter((n) => n.mobile).map(({ to, key, icon: Icon }) => (
+        {nav.filter((n) => n.mobile).map(({ to, key, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             end={to === "/"}
             className={({ isActive }) =>
               cx(
-                "relative flex min-w-0 flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors",
+                // Sized by label, not equal widths: with six tabs, long labels
+                // ("Impostazioni", "Tableau de bord") take the room short ones leave.
+                "relative flex min-w-0 flex-auto flex-col items-center gap-0.5 px-0.5 py-2.5 text-[11px] font-medium transition-colors",
                 "before:absolute before:left-1/2 before:top-0 before:h-0.5 before:w-7 before:-translate-x-1/2 before:rounded-full before:transition-colors",
                 isActive ? "text-rust before:bg-rust" : "text-muted before:bg-transparent",
               )

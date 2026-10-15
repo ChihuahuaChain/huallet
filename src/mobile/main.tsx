@@ -9,6 +9,7 @@ import { setBiometric } from "@/lib/biometric";
 import { setAppStorage } from "@/lib/kv";
 import { setNative } from "@/lib/native";
 import { androidBiometric } from "./biometric";
+import { dappBrowser, setupDappBridge } from "./dappBridge";
 import { androidLedger, androidNfc, androidScreen } from "./native";
 import { mobilePlatform, prefsAppStorage } from "./platform";
 
@@ -17,8 +18,14 @@ setAppStorage(prefsAppStorage);
 setBiometric(androidBiometric);
 setNative({ cameraScan: true, nfc: androidNfc, screen: androidScreen, ledger: androidLedger });
 const refreshKeyring = () => import("@/extension/state/keyringStore").then((m) => m.useKeyring.getState().refresh());
-const core = createWalletCore(mobilePlatform(() => void refreshKeyring()));
+const core = createWalletCore(
+  mobilePlatform(() => {
+    void refreshKeyring();
+    void dappBrowser.keystoreChanged();
+  }),
+);
 setInProcessBackground(core.handleUi);
+setupDappBridge(core);
 
 // Auto-lock: checked every 30 s while open, and as soon as the app comes back.
 setInterval(() => void core.checkAutoLock().then(refreshKeyring), 30_000);
